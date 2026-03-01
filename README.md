@@ -463,8 +463,8 @@
 
     <script>
         // ============= GOOGLE SHEETS URL =============
-        // BU YERGA O'Z GOOGLE SHEETS URL INGIZNI QO'YING
-        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwXCc3Jh1l-Lo7sqitWSoW1G64Kll_SsG9bs71pPcxaWKT1U-ZM4FLA5BW7dYwqh0lX/exec';
+        // BU YERGA O'ZINGIZNING GOOGLE SHEETS URL INGIZNI QO'YING
+        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
         // ============= GLOBAL O'ZGARUVCHILAR =============
         let allAds = [];
@@ -515,14 +515,12 @@
             adsList.innerHTML = '<div class="loading">⏳ Yuklanmoqda...</div>';
             
             try {
-                // Google Sheets dan ma'lumot olish
-                const response = await fetch(GOOGLE_SHEETS_URL + '?action=getAds');
+                const response = await fetch(`${GOOGLE_SHEETS_URL}?action=getAds`);
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
                     allAds = data;
                 } else {
-                    // Test ma'lumotlar
                     allAds = [
                         {id: 1, title: 'iPhone 15 Pro Max', price: 14999000, category: 'telefonlar', description: 'Yangi', time: 'Bugun 14:30', phone: '+998901234567'},
                         {id: 2, title: 'Chevrolet Malibu', price: 320000000, category: 'mashinalar', description: '2023-yil', time: 'Kecha', phone: '+998901234568'},
@@ -538,7 +536,6 @@
             }
         }
 
-        // ============= FILTRLASH =============
         function filterByCategory(category) {
             currentCategory = category;
             document.querySelectorAll('.cat-item').forEach(item => {
@@ -590,7 +587,6 @@
             }
         }
 
-        // ============= YANGI E'LON QO'SHISH =============
         document.getElementById('adForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -606,8 +602,7 @@
             };
 
             try {
-                // Google Sheets ga saqlash
-                const response = await fetch(GOOGLE_SHEETS_URL + '?action=addAd', {
+                const response = await fetch(`${GOOGLE_SHEETS_URL}?action=addAd`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(newAd)
@@ -630,7 +625,6 @@
             }
         });
 
-        // ============= E'LON TAFSILOTLARI =============
         function showAdDetails(ad) {
             document.getElementById('modalTitle').textContent = ad.title;
             document.getElementById('modalBody').innerHTML = `
@@ -656,7 +650,6 @@
             document.getElementById('adModal').classList.remove('active');
         }
 
-        // ============= FOYDALANUVCHI E'LONLARI =============
         function loadUserAds() {
             const userAds = document.getElementById('userAds');
             const userAdsList = allAds.filter(ad => ad.userId === currentUser.id);
@@ -678,7 +671,6 @@
             }
         }
 
-        // ============= BOSHLANG'ICH YUKLASH =============
         document.addEventListener('DOMContentLoaded', function() {
             loadAds();
         });
