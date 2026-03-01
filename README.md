@@ -464,7 +464,7 @@
     <script>
         // ============= GOOGLE SHEETS URL =============
         // BU YERGA O'Z GOOGLE SHEETS URL INGIZNI QO'YING
-        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwWPftHmCfNW8r6XvQpCgkhKwz4eT3wvIxQaC1O0EeGx7jL5k8/exec';
+        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwXCc3Jh1l-Lo7sqitWSoW1G64Kll_SsG9bs71pPcxaWKT1U-ZM4FLA5BW7dYwqh0lX/exec';
 
         // ============= GLOBAL O'ZGARUVCHILAR =============
         let allAds = [];
