@@ -595,8 +595,8 @@
     </div>
 
     <script>
-        // API URL - Apps Script URL ni o'zgartiring!
-        const API_URL = 'https://script.google.com/macros/s/AKfycbw_jYNxQeq4gvJRbWSvYh27aZY2a8MQfOLD4XYxTHtA/exec';
+        // API URL - SIZNING APPS SCRIPT URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyUObDGe6J7sKFJeWU5SLhBbNoRVg0lS9Kug6A9HUHQzMafrOAdgUO_zUlCiSN-b7ksCA/exec';
         
         // State
         let allProducts = [];
