@@ -2,8 +2,8 @@
 // SUPABASE KONFIGURATSIYASI
 // ============================================
 // ⚠️ O'ZINGIZNING SUPABASE URL VA ANON KEY NI QO'YING!
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://olex-market.supabase.com';
+const SUPABASE_ANON_KEY = 'hucbusaaxcmduqgfkovo';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
