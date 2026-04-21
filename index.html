@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>OleX Market - Xarid va Sotuv Platformasi</title>
-    <!-- Telegram WebApp SDK -->
+    <title>OleX Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-logo">
             <span class="logo-icon">🛍️</span>
             <span class="logo-text">OleX Market</span>
         </div>
-        <div class="header-user" id="userBtn" onclick="window.location.href='profile.html'">
+        <div class="header-user" onclick="window.location.href='profile.html'">
             <div class="user-avatar" id="userAvatar">👤</div>
             <div class="user-info">
                 <span class="user-name" id="userName">Yuklanmoqda...</span>
@@ -24,13 +22,11 @@
         </div>
     </div>
 
-    <!-- Qidiruv va Kategoriyalar -->
     <div class="search-section">
         <div class="search-box">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" class="search-input" placeholder="Mahsulot qidirish...">
         </div>
-        
         <div class="categories" id="categories">
             <button class="cat-btn active" data-cat="all">🏠 Barchasi</button>
             <button class="cat-btn" data-cat="Telefonlar">📱 Telefonlar</button>
@@ -44,7 +40,6 @@
         </div>
     </div>
 
-    <!-- Mahsulotlar ro'yxati -->
     <div class="products-container" id="productsContainer">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -52,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <a href="index.html" class="nav-item active">
             <span class="nav-icon">🏠</span>
@@ -126,93 +120,11 @@
                 <h3>Mahsulot tafsilotlari</h3>
                 <button class="modal-close" onclick="closeDetailModal()">&times;</button>
             </div>
-            <div class="modal-body" id="detailBody">
-                <!-- Dinamik ma'lumot -->
-            </div>
+            <div class="modal-body" id="detailBody"></div>
         </div>
     </div>
 
-    <script src="js/app.js"></script>
-    <script>
-        // Telegram WebApp ni ishga tushirish
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        
-        // Foydalanuvchi ma'lumotlarini saqlash
-        let currentUser = null;
-        
-        // Real Telegram user ma'lumotlarini olish
-        function getTelegramUser() {
-            const user = tg.initDataUnsafe?.user;
-            if (user) {
-                return {
-                    id: user.id,
-                    firstName: user.first_name || '',
-                    lastName: user.last_name || '',
-                    username: user.username || '',
-                    languageCode: user.language_code || 'uz',
-                    photoUrl: user.photo_url || '',
-                    displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`
-                };
-            }
-            return null;
-        }
-        
-        // Sayt yuklanganda
-        window.addEventListener('DOMContentLoaded', async () => {
-            const telegramUser = getTelegramUser();
-            if (telegramUser) {
-                currentUser = telegramUser;
-                // Profilni yangilash
-                document.getElementById('userName').textContent = currentUser.displayName;
-                document.getElementById('userAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
-                // LocalStorage ga saqlash
-                localStorage.setItem('olex_user', JSON.stringify(currentUser));
-            } else {
-                // Test rejimi
-                currentUser = {
-                    id: Date.now(),
-                    firstName: 'Test',
-                    lastName: 'User',
-                    username: 'test_user',
-                    displayName: 'Test User'
-                };
-                document.getElementById('userName').textContent = 'Mehmon';
-            }
-            
-            // Mahsulotlarni yuklash
-            loadProducts();
-        });
-        
-        // Add modal
-        const addModal = document.getElementById('addModal');
-        document.getElementById('addProductBtn').onclick = (e) => {
-            e.preventDefault();
-            addModal.style.display = 'flex';
-        };
-        
-        function closeAddModal() {
-            addModal.style.display = 'none';
-        }
-        
-        function closeDetailModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
-        
-        // Qidiruv
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            filterProducts(e.target.value);
-        });
-        
-        // Kategoriya filter
-        document.querySelectorAll('.cat-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                filterByCategory(btn.dataset.cat);
-            });
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
 </body>
 </html>
