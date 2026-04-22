@@ -1,5 +1,6 @@
 // ============================================
-// OLEX MARKET - TO'LIQ ISHLAYDI
+// OLEX MARKET - TO'LIQ FRONTEND
+// Google Sheets, Docs, Drive bilan to'liq ishlaydi
 // ============================================
 
 // ============================================
@@ -7,7 +8,7 @@
 // ============================================
 
 // ⚠️ O'ZINGIZNING APPS SCRIPT URL INGIZNI QO'YING!
-const API_URL = 'https://script.google.com/macros/s/AKfycbxwIp99MgNyJN65DpFhSCrhLtRuM0X0TOvPqbkM8yBWdFGIm6mDmnQhp59gkWBrYv88/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbz70foBkgKEFDmWdH_VSv-115jeuT9euIFs093owFYofSObtw8zE1Tbvj-ff-Nj58b0yQ/exec';
 
 // Telegram WebApp
 const tg = window.Telegram.WebApp;
@@ -33,7 +34,6 @@ async function initTelegramAuth() {
         const user = tg.initDataUnsafe?.user;
         
         if (!user || !user.id) {
-            // Test rejimi (brauzerda ishlatish uchun)
             currentUser = {
                 id: 'test_' + Date.now(),
                 firstName: 'Test',
@@ -53,10 +53,8 @@ async function initTelegramAuth() {
             };
         }
         
-        // UI ni yangilash
         updateUI();
         
-        // Splash screen ni yashirish
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
             const app = document.getElementById('appContainer');
@@ -93,7 +91,6 @@ function updateUI() {
     if (elements.tgUsername) elements.tgUsername.textContent = currentUser.username || '-';
     if (elements.loginDate) elements.loginDate.textContent = new Date().toLocaleString('uz-UZ');
     
-    // Profil formasini to'ldirish
     const savedProfile = localStorage.getItem(`olex_profile_${currentUser.id}`);
     if (savedProfile) {
         const profile = JSON.parse(savedProfile);
@@ -123,14 +120,11 @@ async function loadProducts() {
             cache: 'no-cache'
         });
         
-        console.log('📥 Javob status:', response.status);
-        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('📦 Olingan ma\'lumot:', data);
         
         if (data.success) {
             allProducts = data.products || [];
@@ -217,6 +211,7 @@ async function addProduct() {
     const price = document.getElementById('productPrice')?.value;
     const category = document.getElementById('productCategory')?.value;
     const contact = document.getElementById('productContact')?.value.trim();
+    const imageFile = document.getElementById('productImage')?.files[0];
     
     if (!name || !desc || !price || !contact) {
         showToast('⚠️ Barcha maydonlarni to\'ldiring!', 'warning');
@@ -230,6 +225,12 @@ async function addProduct() {
     }
     
     try {
+        let imageUrl = '';
+        
+        if (imageFile) {
+            imageUrl = await uploadImageToDrive(imageFile);
+        }
+        
         const formData = new URLSearchParams();
         formData.append('action', 'addProduct');
         formData.append('name', name);
@@ -238,6 +239,7 @@ async function addProduct() {
         formData.append('category', category);
         formData.append('contact', contact);
         formData.append('userId', currentUser.id);
+        formData.append('imageUrl', imageUrl);
         
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -250,16 +252,14 @@ async function addProduct() {
         if (data.success) {
             showToast('✅ Mahsulot muvaffaqiyatli qo\'shildi!', 'success');
             
-            // Formani tozalash
             document.getElementById('productName').value = '';
             document.getElementById('productDesc').value = '';
             document.getElementById('productPrice').value = '';
             document.getElementById('productContact').value = '';
+            document.getElementById('productImage').value = '';
             
-            // Mahsulotlarni qayta yuklash
             await loadProducts();
             
-            // Home tab ga o'tish
             const homeTab = document.querySelector('.tab-btn[data-tab="home"]');
             if (homeTab) homeTab.click();
         } else {
@@ -274,6 +274,38 @@ async function addProduct() {
             btn.textContent = '✅ E\'lonni joylash';
         }
     }
+}
+
+async function uploadImageToDrive(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                const formData = new URLSearchParams();
+                formData.append('action', 'uploadImage');
+                formData.append('image', base64);
+                formData.append('fileName', file.name);
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    resolve(data.url);
+                } else {
+                    reject(new Error(data.error));
+                }
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 // ============================================
@@ -441,7 +473,6 @@ async function saveProfile() {
     const fullName = document.getElementById('fullName')?.value.trim();
     const phone = document.getElementById('phoneNumber')?.value.trim();
     
-    // LocalStorage ga saqlash
     const profile = {
         fullName: fullName,
         phone: phone,
@@ -449,7 +480,6 @@ async function saveProfile() {
     };
     localStorage.setItem(`olex_profile_${currentUser.id}`, JSON.stringify(profile));
     
-    // Serverga yuborish
     try {
         const formData = new URLSearchParams();
         formData.append('action', 'saveProfile');
@@ -477,7 +507,86 @@ async function saveProfile() {
 }
 
 // ============================================
-// 9. YORDAMCHI FUNKSIYALAR
+// 9. DRIVE GA MA'LUMOT SAQLASH
+// ============================================
+async function saveDataToDrive(data, fileName) {
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveToDrive');
+        formData.append('fileName', fileName || `olex_data_${Date.now()}.json`);
+        formData.append('content', JSON.stringify(data, null, 2));
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`✅ Ma'lumot Drive ga saqlandi: ${result.fileName}`, 'success');
+            return result;
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        showToast('❌ ' + error.message, 'error');
+        return null;
+    }
+}
+
+// ============================================
+// 10. YANGI DOCUMENT YARATISH
+// ============================================
+async function createNewDocument(docName, content) {
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'createDocument');
+        formData.append('docName', docName || `Olex_Doc_${Date.now()}`);
+        formData.append('content', content || '');
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`✅ Document yaratildi: ${result.docName}`, 'success');
+            window.open(result.docUrl, '_blank');
+            return result;
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        showToast('❌ ' + error.message, 'error');
+        return null;
+    }
+}
+
+// ============================================
+// 11. HAMMA MA'LUMOTLARNI EKSPORT QILISH
+// ============================================
+async function exportAllData() {
+    try {
+        const allData = {
+            products: allProducts,
+            user: currentUser,
+            chatMessages: chatMessages,
+            exportDate: new Date().toISOString()
+        };
+        
+        await saveDataToDrive(allData, `olex_full_export_${Date.now()}.json`);
+    } catch (error) {
+        showToast('❌ Eksport qilishda xatolik', 'error');
+    }
+}
+
+// ============================================
+// 12. YORDAMCHI FUNKSIYALAR
 // ============================================
 function getCategoryIcon(category) {
     const icons = {
@@ -517,14 +626,13 @@ function showToast(message, type) {
 }
 
 // ============================================
-// 10. EVENT LISTENERLAR
+// 13. EVENT LISTENERLAR
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     await initTelegramAuth();
     await loadProducts();
     await loadChat();
     
-    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -536,7 +644,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Category filter
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -546,7 +653,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Search
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -555,15 +661,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Add product
     const addBtn = document.getElementById('addProductBtn');
     if (addBtn) addBtn.addEventListener('click', addProduct);
     
-    // Save profile
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveProfile);
     
-    // Chat
     const sendBtn = document.getElementById('sendChatBtn');
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
     
@@ -574,7 +677,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Har 5 sekundda chatni yangilash
+    // Eksport tugmasi (agar mavjud bo'lsa)
+    const exportBtn = document.getElementById('exportDataBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportAllData);
+    
     setInterval(() => {
         const chatTab = document.querySelector('.tab-btn[data-tab="chat"]');
         if (chatTab && chatTab.classList.contains('active')) {
