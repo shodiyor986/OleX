@@ -5,7 +5,7 @@
 
 // -------------------- KONFIGURATSIYA --------------------
 // Apps Script URL (o‘z URL ingiz bilan almashtiring)
-const API_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxenE0AM6qvA3C8b_1uPMrncnj-hjUuBI2MB6ynNwWZ7P3IMHDnVolxYYXENnnuku8wAg/exec';
 
 // -------------------- YORDAMCHI FUNKSIYALAR --------------------
 function showToast(message, type) {
