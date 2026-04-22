@@ -1,24 +1,21 @@
 // ============================================
-// OLEX MARKET - XAVFSIZ TELEGRAM WEB APP
-// Google Apps Script Web App API orqali
+// OLEX MARKET - GOOGLE APPS SCRIPT API
 // ============================================
 
-// ⚠️ MUHIM: O'zingizning Apps Script URL ini qo'ying!
-const SHEET_ID = '17kp71tr4Ac0fY-pW-r_zwj0gXoeQ8Ax_ZHXoFrN-at4';
-const SHEET_NAME = 'Olex test';  // Sheet nomini to'g'ri yozing!
+// ⚠️ O'ZINGIZNING APPS SCRIPT URL INGIZNI QO'YING!
+const API_URL = 'https://script.google.com/macros/s/AKfycbx7YaVd4NeBTXyZeb9MUoNM_scfJzI18JwsDEmo9BdwuTkkS3abHY4TANoN9jDrbv5xMQ/exec';
 
 const tg = window.Telegram.WebApp;
 let currentUser = null;
 let allProducts = [];
 
 // ============================================
-// TELEGRAM AUTHENTIFICATION
+// TELEGRAM AUTH
 // ============================================
 async function initTelegramAuth() {
     try {
         tg.ready();
         tg.expand();
-        tg.enableClosingConfirmation();
         
         const user = tg.initDataUnsafe?.user;
         if (!user || !user.id) {
@@ -30,11 +27,10 @@ async function initTelegramAuth() {
             firstName: user.first_name || '',
             lastName: user.last_name || '',
             username: user.username || '',
-            displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`,
-            loginTime: new Date().toISOString()
+            displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`
         };
         
-        // UI ni yangilash
+        // UI yangilash
         document.getElementById('userName').textContent = currentUser.displayName;
         document.getElementById('userAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
         document.getElementById('profileName').textContent = currentUser.displayName;
@@ -43,7 +39,6 @@ async function initTelegramAuth() {
         document.getElementById('tgId').textContent = currentUser.id;
         document.getElementById('tgUsername').textContent = currentUser.username || '-';
         
-        // Splash screen ni yashirish
         setTimeout(() => {
             document.getElementById('splashScreen').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
@@ -52,21 +47,16 @@ async function initTelegramAuth() {
         return true;
     } catch (error) {
         console.error('Auth xatosi:', error);
-        showToast('❌ Autentifikatsiya xatosi!', 'error');
         return false;
     }
 }
 
 // ============================================
-// MAHSULOTLARNI GOOGLE SHEETS DAN YUKLASH
+// MAHSULOTLARNI YUKLASH
 // ============================================
 async function loadProducts() {
     try {
-        const response = await fetch(`${API_URL}?action=getProducts`, {
-            method: 'GET',
-            mode: 'cors'
-        });
-        
+        const response = await fetch(`${API_URL}?action=getProducts`);
         const data = await response.json();
         
         if (data.success) {
@@ -78,20 +68,18 @@ async function loadProducts() {
         }
     } catch (error) {
         console.error('Yuklash xatosi:', error);
-        showToast('❌ Mahsulotlarni yuklashda xatolik', 'error');
+        showToast('❌ Mahsulotlarni yuklashda xatolik: ' + error.message, 'error');
         document.getElementById('productsContainer').innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <p>Ulanishda xatolik</p>
                 <p style="font-size:12px;margin-top:8px;">${error.message}</p>
+                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;">🔄 Qayta urinish</button>
             </div>
         `;
     }
 }
 
-// ============================================
-// MAHSULOTLARNI KO'RSATISH
-// ============================================
 let currentFilter = 'all';
 let searchQuery = '';
 
@@ -136,7 +124,7 @@ function renderProducts(products) {
 }
 
 // ============================================
-// YANGI MAHSULOT QO'SHISH (Google Sheets ga)
+// YANGI MAHSULOT QO'SHISH
 // ============================================
 async function addProduct() {
     const name = document.getElementById('productName').value.trim();
@@ -155,19 +143,19 @@ async function addProduct() {
     btn.textContent = '⏳ Yuklanmoqda...';
     
     try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'addProduct');
+        formData.append('name', name);
+        formData.append('description', desc);
+        formData.append('price', parseFloat(price));
+        formData.append('category', category);
+        formData.append('contact', contact);
+        formData.append('userId', currentUser.id);
+        
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'cors',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'addProduct',
-                name: name,
-                description: desc,
-                price: parseFloat(price),
-                category: category,
-                contact: contact,
-                userId: currentUser.id
-            })
+            body: formData
         });
         
         const data = await response.json();
@@ -253,15 +241,15 @@ async function deleteMyProduct(rowIndex) {
     if (!confirm('E\'lonni o\'chirmoqchimisiz?')) return;
     
     try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'deleteProduct');
+        formData.append('rowIndex', rowIndex);
+        formData.append('userId', currentUser.id);
+        
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'cors',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'deleteProduct',
-                rowIndex: rowIndex,
-                userId: currentUser.id
-            })
+            body: formData
         });
         
         const data = await response.json();
@@ -269,38 +257,6 @@ async function deleteMyProduct(rowIndex) {
         if (data.success) {
             showToast('✅ E\'lon o\'chirildi', 'success');
             await loadProducts();
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        showToast('❌ ' + error.message, 'error');
-    }
-}
-
-// ============================================
-// PROFIL MA'LUMOTLARINI SAQLASH
-// ============================================
-async function saveProfile() {
-    const fullName = document.getElementById('fullName').value.trim();
-    const phone = document.getElementById('phoneNumber').value.trim();
-    
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'saveProfile',
-                userId: currentUser.id,
-                fullName: fullName,
-                phone: phone
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('✅ Profil ma\'lumotlari saqlandi!', 'success');
         } else {
             throw new Error(data.error);
         }
@@ -347,7 +303,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initTelegramAuth();
     await loadProducts();
     
-    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -358,7 +313,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Category filter
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -368,15 +322,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderProducts(allProducts);
     });
     
-    // Add product
     document.getElementById('addProductBtn').addEventListener('click', addProduct);
-    
-    // Save profile
-    document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
 });
