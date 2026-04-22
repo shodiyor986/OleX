@@ -1,33 +1,32 @@
 /* =====================================================
-   style.css - OLEX MARKET ILOVASI UCHUN ASOSIY STILLAR
-   Vazifasi: Ilovaning barcha vizual elementlarini bezash.
-   Ranglar va o'lchamlar o'zgaruvchilar (CSS variables) orqali boshqariladi.
+   style.css - OLEX MARKET - YORQIN VA ANIQ VERSIYA
+   Barcha ranglar kontrastli, hech narsa qorong'ulikda yo'qolmaydi.
    ===================================================== */
 
 /* -------------------- GLOBAL O'ZGARUVCHILAR -------------------- */
 :root {
-    --bg-primary: #0e1621;      /* Asosiy fon rangi (to'q ko'k) */
-    --bg-secondary: #17212b;    /* Ikkinchi darajali fon (sarlavha, tablar) */
-    --bg-card: #1f2a36;         /* Karta va bo'limlar foni */
-    --bg-input: #242f3d;        /* Input va textarea fon rangi */
-    --border: rgba(255,255,255,0.07); /* Chegaralar (ajratish chiziqlari) */
-    --accent: #2a9fff;          /* Asosiy aksent rang (tugmalar, aktiv tablar) */
-    --success: #3ddc84;         /* Muvaffaqiyat rang (yashil) */
-    --danger: #ff5555;          /* Xatolik rang (qizil) */
-    --warning: #ffa500;         /* Ogohlantirish rang (sariq) */
-    --text-primary: #e8edf2;    /* Asosiy matn rangi */
-    --text-secondary: #8ea5b8;  /* Ikkinchi darajali matn rangi */
-    --text-tertiary: #5a7a94;   /* Uchinchi darajali matn rangi */
-    --radius: 14px;             /* Katta radius (kartalar uchun) */
-    --radius-sm: 10px;          /* Kichik radius (inputlar uchun) */
+    --bg-primary: #0f172a;        /* Asosiy fon – to'q ko'k, ammo matn oq */
+    --bg-secondary: #1e293b;      /* Sarlavha va tablar foni */
+    --bg-card: #334155;           /* Kartalar foni – yorqinroq */
+    --bg-input: #475569;          /* Input foni – aniq farqlanadi */
+    --border: #475569;            /* Chegaralar */
+    --accent: #3b82f6;            /* Moviy aksent */
+    --accent-hover: #2563eb;
+    --success: #10b981;           /* Yashil */
+    --danger: #ef4444;            /* Qizil */
+    --warning: #f59e0b;           /* Sariq */
+    --text-primary: #f1f5f9;      /* Asosiy matn – och oq */
+    --text-secondary: #cbd5e1;    /* Ikkinchi darajali matn */
+    --text-tertiary: #94a3b8;     /* Uchinchi darajali matn */
+    --radius: 14px;
+    --radius-sm: 10px;
 }
 
-/* -------------------- GLOBAL SOZLAMALAR -------------------- */
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;              /* Padding va border width ni element o'lchamiga qo'shish */
-    -webkit-tap-highlight-color: transparent; /* Mobil brauzerlardagi sariq fonni olib tashlash */
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -44,17 +43,20 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, #0e1621 0%, #1a2a3a 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeOut 0.5s ease 1.5s forwards; /* 1.5 sekunddan keyin yo'qoladi */
+    animation: fadeOut 0.5s ease 2s forwards; /* 2 sekunddan keyin yo'qoladi */
 }
 
 @keyframes fadeOut {
-    to { opacity: 0; visibility: hidden; }
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
 }
 
 .splash-logo {
@@ -62,15 +64,15 @@ body {
     animation: bounce 0.6s ease;
 }
 @keyframes bounce {
-    0%,100%{transform:scale(1)}
-    50%{transform:scale(1.2)}
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
 .splash-title {
     font-size: 28px;
     font-weight: 700;
     margin-top: 16px;
-    background: linear-gradient(135deg, var(--accent), #6c5ce7);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -79,16 +81,18 @@ body {
 .splash-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid var(--bg-input);
-    border-top-color: var(--accent);
+    border: 3px solid #334155;
+    border-top-color: #3b82f6;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 30px 0 16px;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 
 .splash-text {
-    color: var(--text-secondary);
+    color: #94a3b8;
     font-size: 14px;
 }
 
@@ -100,7 +104,7 @@ body {
     min-height: 100vh;
 }
 
-/* -------------------- HEADER (SARIQ QISM) -------------------- */
+/* -------------------- HEADER -------------------- */
 .header {
     position: sticky;
     top: 0;
@@ -113,12 +117,18 @@ body {
     border-bottom: 1px solid var(--border);
     z-index: 100;
 }
-.header-logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon { font-size: 24px; }
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.logo-icon {
+    font-size: 24px;
+}
 .logo-text {
     font-size: 18px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), #6c5ce7);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -132,23 +142,34 @@ body {
     border-radius: 30px;
     transition: background 0.2s;
 }
-.header-user:active { background: var(--bg-input); }
+.header-user:active {
+    background: var(--bg-card);
+}
 .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #6c5ce7);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 18px;
 }
-.user-info { display: flex; flex-direction: column; }
-.user-name { font-size: 14px; font-weight: 500; }
-.user-status { font-size: 10px; color: var(--success); }
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+.user-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+.user-status {
+    font-size: 10px;
+    color: #10b981;
+}
 
-/* -------------------- TABLAR (4 TA BO'LIM) -------------------- */
+/* -------------------- TABLAR -------------------- */
 .tabs {
     position: sticky;
     top: 60px;
@@ -170,16 +191,31 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.tab-btn.active { background: var(--accent); color: white; }
-
-/* Tab mazmuni (faqat active bo'lgani ko'rinadi) */
-.tab-content { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.tab-content.active { display: block; }
+.tab-btn.active {
+    background: var(--accent);
+    color: white;
+}
+.tab-content {
+    display: none;
+    padding: 16px;
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.tab-content.active {
+    display: block;
+}
 
 /* -------------------- QIDIRUV VA KATEGORIYALAR -------------------- */
-.search-section { margin-bottom: 16px; }
-.search-box { position: relative; margin-bottom: 12px; }
+.search-section {
+    margin-bottom: 16px;
+}
+.search-box {
+    position: relative;
+    margin-bottom: 12px;
+}
 .search-icon {
     position: absolute;
     left: 14px;
@@ -197,8 +233,9 @@ body {
     font-size: 15px;
     outline: none;
 }
-.search-input:focus { border-color: var(--accent); }
-
+.search-input:focus {
+    border-color: var(--accent);
+}
 .categories {
     display: flex;
     gap: 8px;
@@ -206,7 +243,9 @@ body {
     padding: 4px 0 8px;
     scrollbar-width: none;
 }
-.categories::-webkit-scrollbar { display: none; }
+.categories::-webkit-scrollbar {
+    display: none;
+}
 .cat-btn {
     flex-shrink: 0;
     padding: 8px 16px;
@@ -218,11 +257,21 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.cat-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.cat-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
 
 /* -------------------- MAHSULOTLAR KARTALARI -------------------- */
-.products-container { min-height: 400px; }
-.product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.products-container {
+    min-height: 400px;
+}
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
 .product-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -231,7 +280,10 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.product-card:active { transform: scale(0.97); border-color: var(--accent); }
+.product-card:active {
+    transform: scale(0.97);
+    border-color: var(--accent);
+}
 .product-image {
     width: 100%;
     aspect-ratio: 1;
@@ -241,11 +293,17 @@ body {
     justify-content: center;
     font-size: 48px;
 }
-.product-image img { width: 100%; height: 100%; object-fit: cover; }
-.product-info { padding: 12px; }
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.product-info {
+    padding: 12px;
+}
 .product-category {
     font-size: 10px;
-    color: var(--accent);
+    color: #93c5fd;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -270,8 +328,16 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-.product-price { font-size: 14px; font-weight: 700; color: var(--success); }
-.product-contact { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; }
+.product-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #34d399;
+}
+.product-contact {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+}
 
 /* -------------------- FORMA (E'LON QO'SHISH) -------------------- */
 .form-card {
@@ -280,9 +346,20 @@ body {
     padding: 20px;
     margin-bottom: 16px;
 }
-.form-title { margin-bottom: 20px; font-size: 18px; color: var(--accent); }
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.form-title {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #60a5fa;
+}
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
 .form-input {
     width: 100%;
     background: var(--bg-input);
@@ -293,8 +370,13 @@ body {
     font-size: 14px;
     outline: none;
 }
-.form-input:focus { border-color: var(--accent); }
-textarea.form-input { resize: vertical; font-family: inherit; }
+.form-input:focus {
+    border-color: var(--accent);
+}
+textarea.form-input {
+    resize: vertical;
+    font-family: inherit;
+}
 .submit-btn {
     width: 100%;
     padding: 14px;
@@ -307,22 +389,35 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     cursor: pointer;
     transition: all 0.2s;
 }
-.submit-btn:active { transform: scale(0.98); }
-.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-btn:active {
+    transform: scale(0.98);
+}
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
 /* -------------------- INFO KARTA -------------------- */
 .info-card {
-    background: rgba(42,159,255,0.1);
-    border: 1px solid rgba(42,159,255,0.2);
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
     border-radius: var(--radius);
     padding: 16px;
     display: flex;
     gap: 12px;
     align-items: center;
 }
-.info-icon { font-size: 32px; }
-.info-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
-.info-text strong { color: var(--accent); }
+.info-icon {
+    font-size: 32px;
+}
+.info-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+.info-text strong {
+    color: #60a5fa;
+}
 
 /* -------------------- PROFIL KARTASI -------------------- */
 .profile-card {
@@ -336,7 +431,7 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #6c5ce7);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -344,21 +439,29 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     font-size: 36px;
     font-weight: 700;
 }
-.profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.profile-username { color: var(--text-secondary); font-size: 13px; margin-bottom: 12px; }
+.profile-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.profile-username {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
 .security-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(42,159,255,0.1);
-    border: 1px solid rgba(42,159,255,0.3);
+    background: rgba(59,130,246,0.2);
+    border: 1px solid rgba(59,130,246,0.4);
     border-radius: 30px;
     padding: 6px 14px;
     font-size: 11px;
-    color: var(--accent);
+    color: #93c5fd;
 }
 
-/* -------------------- MA'LUMOT BO'LIMLARI (PROFIL) -------------------- */
+/* -------------------- MA'LUMOT BO'LIMLARI -------------------- */
 .info-section {
     background: var(--bg-card);
     border-radius: var(--radius);
@@ -379,9 +482,17 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
 }
-.info-row:last-child { border-bottom: none; }
-.info-label { color: var(--text-secondary); font-size: 13px; }
-.info-value { font-weight: 500; font-size: 13px; }
+.info-row:last-child {
+    border-bottom: none;
+}
+.info-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+.info-value {
+    font-weight: 500;
+    font-size: 13px;
+}
 
 /* -------------------- MENGING E'LONLARIM -------------------- */
 .my-product-item {
@@ -393,14 +504,24 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     border-radius: var(--radius-sm);
     margin-bottom: 8px;
 }
-.my-product-icon { font-size: 32px; }
-.my-product-info { flex: 1; }
-.my-product-name { font-weight: 600; margin-bottom: 4px; }
-.my-product-price { color: var(--success); font-size: 13px; }
+.my-product-icon {
+    font-size: 32px;
+}
+.my-product-info {
+    flex: 1;
+}
+.my-product-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.my-product-price {
+    color: #34d399;
+    font-size: 13px;
+}
 .delete-product-btn {
     background: none;
     border: none;
-    color: var(--danger);
+    color: #f87171;
     font-size: 20px;
     cursor: pointer;
     padding: 8px;
@@ -425,22 +546,41 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     flex-direction: column;
     max-width: 80%;
 }
-.message.sent { align-self: flex-end; }
-.message.received { align-self: flex-start; }
+.message.sent {
+    align-self: flex-end;
+}
+.message.received {
+    align-self: flex-start;
+}
 .message-bubble {
     padding: 10px 14px;
     border-radius: 18px;
     font-size: 14px;
 }
-.message.sent .message-bubble { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
-.message.received .message-bubble { background: var(--bg-card); border-bottom-left-radius: 4px; }
-.message-sender { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-.message-time { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
+.message.sent .message-bubble {
+    background: #3b82f6;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.message.received .message-bubble {
+    background: var(--bg-card);
+    border-bottom-left-radius: 4px;
+}
+.message-sender {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+.message-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
 .chat-input-area {
     display: flex;
     gap: 10px;
     padding: 12px;
-    background: var(--bg-card);
+    background: var(--bg-secondary);
     border-top: 1px solid var(--border);
 }
 .chat-input {
@@ -472,7 +612,7 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     z-index: 200;
     align-items: center;
     justify-content: center;
@@ -504,10 +644,15 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     color: var(--text-secondary);
     cursor: pointer;
 }
-.modal-body { padding: 20px; }
+.modal-body {
+    padding: 20px;
+}
 
 /* -------------------- YUKLASH HOLATLARI -------------------- */
-.loading-state { text-align: center; padding: 60px 20px; }
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+}
 .loading-spinner {
     width: 40px;
     height: 40px;
@@ -517,7 +662,10 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     animation: spin 0.8s linear infinite;
     margin: 0 auto 16px;
 }
-.loading-state-small { text-align: center; padding: 20px; }
+.loading-state-small {
+    text-align: center;
+    padding: 20px;
+}
 .loading-spinner-small {
     width: 24px;
     height: 24px;
@@ -527,8 +675,16 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     animation: spin 0.8s linear infinite;
     margin: 0 auto 12px;
 }
-.empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
-.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
 
 /* -------------------- TOAST XABARLAR -------------------- */
 .toast-container {
@@ -556,12 +712,24 @@ textarea.form-input { resize: vertical; font-family: inherit; }
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
-.toast-success { border-left-color: var(--success); }
-.toast-error { border-left-color: var(--danger); }
-.toast-warning { border-left-color: var(--warning); }
+.toast-success {
+    border-left-color: #10b981;
+}
+.toast-error {
+    border-left-color: #ef4444;
+}
+.toast-warning {
+    border-left-color: #f59e0b;
+}
 
-/* -------------------- RESPONSIVE (MOBIL QURILMALAR) -------------------- */
+/* -------------------- RESPONSIVE -------------------- */
 @media (min-width: 768px) {
-    .app-container { max-width: 600px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
-    .product-grid { grid-template-columns: repeat(2, 1fr); }
+    .app-container {
+        max-width: 600px;
+        margin: 0 auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
