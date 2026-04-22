@@ -6,7 +6,7 @@
 
 // -------------------- KONFIGURATSIYA --------------------
 // Apps Script ning web app URL manzili (o'z URL ingiz bilan almashtiring)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxenE0AM6qvA3C8b_1uPMrncnj-hjUuBI2MB6ynNwWZ7P3IMHDnVolxYYXENnnuku8wAg/exec';
+const API_URL = 'https://script.google.com/macros/s/1lvX7SqYioAO5Y1sEmHtLGcE1taeo43oBXsk4mTunADwmfJgBKiw0hNE6/exec';
 
 // -------------------- YORDAMCHI FUNKSIYALAR --------------------
 /**
