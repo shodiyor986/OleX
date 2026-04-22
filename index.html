@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>OleX Market | Savdo platformasi</title>
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- CSS stillar -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Yuklanish ekrani (Splash Screen) -->
+    <!-- ==================== SPLASH SCREEN (YUKLANISH EKRANI) ==================== -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">🛍️</div>
         <div class="splash-title">OleX Market</div>
@@ -16,9 +18,10 @@
         <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
     </div>
 
-    <!-- Asosiy ilova konteyneri -->
+    <!-- ==================== ASOSIY ILOVA KONTEYNERI ==================== -->
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- Header (sarlavha) -->
+        
+        <!-- -------------------- HEADER (SARLAVHA) -------------------- -->
         <div class="header">
             <div class="header-logo">
                 <span class="logo-icon">🛍️</span>
@@ -33,7 +36,7 @@
             </div>
         </div>
 
-        <!-- Tab navigatsiya (4 ta bo'lim) -->
+        <!-- -------------------- TAB NAVIGATSIYA (4 BO'LIM) -------------------- -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
             <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
@@ -41,8 +44,9 @@
             <button class="tab-btn" data-tab="chat">💬 Chat</button>
         </div>
 
-        <!-- HOME TAB - Mahsulotlar ro'yxati -->
+        <!-- ==================== HOME TAB (MAHSULOTLAR) ==================== -->
         <div class="tab-content active" id="homeTab">
+            <!-- Qidiruv va kategoriyalar -->
             <div class="search-section">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -57,12 +61,13 @@
                     <button class="cat-btn" data-cat="boshqa">📦 Boshqa</button>
                 </div>
             </div>
+            <!-- Mahsulotlar ro'yxati shu yerga yuklanadi -->
             <div id="productsContainer" class="products-container">
                 <div class="loading-state"><div class="loading-spinner"></div><p>Mahsulotlar yuklanmoqda...</p></div>
             </div>
         </div>
 
-        <!-- ADD PRODUCT TAB - Yangi e'lon qo'shish -->
+        <!-- ==================== ADD TAB (YANGI E'LON QO'SHISH) ==================== -->
         <div class="tab-content" id="addTab">
             <div class="form-card">
                 <h3 class="form-title">➕ Yangi e'lon berish</h3>
@@ -108,7 +113,7 @@
             </div>
         </div>
 
-        <!-- PROFILE TAB - Foydalanuvchi profili -->
+        <!-- ==================== PROFILE TAB (FOYDALANUVCHI PROFILI) ==================== -->
         <div class="tab-content" id="profileTab">
             <div class="profile-card">
                 <div class="profile-avatar" id="profileAvatar">👤</div>
@@ -140,7 +145,7 @@
             </div>
         </div>
 
-        <!-- CHAT TAB - Umumiy chat -->
+        <!-- ==================== CHAT TAB (UMUMIY CHAT) ==================== -->
         <div class="tab-content" id="chatTab">
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
@@ -157,7 +162,7 @@
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <!-- Frontend JavaScript fayllari (yubor.js va qabul.js) -->
+    <!-- Frontend JavaScript fayllari (yubor.js - POST, qabul.js - GET) -->
     <script src="yubor.js"></script>
     <script src="qabul.js"></script>
 </body>
