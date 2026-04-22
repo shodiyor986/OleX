@@ -1,9 +1,10 @@
 // ============================================
-// OLEX MARKET - GOOGLE APPS SCRIPT API
+// OLEX MARKET - TO'LIQ ISHLAYDI
 // ============================================
 
-// Apps Script URL (sizning deployed URL ingiz)
+// ⚠️ O'ZINGIZNING YANGI DEPLOY QILGAN URL INGIZNI QO'YING!
 const API_URL = 'https://script.google.com/macros/s/AKfycbx7YaVd4NeBTXyZeb9MUoNM_scfJzI18JwsDEmo9BdwuTkkS3abHY4TANoN9jDrbv5xMQ/exec';
+
 
 // Telegram WebApp
 const tg = window.Telegram.WebApp;
@@ -11,13 +12,12 @@ let currentUser = null;
 let allProducts = [];
 
 // ============================================
-// TELEGRAM AUTHENTIFICATION
+// TELEGRAM AUTH
 // ============================================
 async function initTelegramAuth() {
     try {
         tg.ready();
         tg.expand();
-        tg.enableClosingConfirmation();
         
         const user = tg.initDataUnsafe?.user;
         
@@ -34,7 +34,7 @@ async function initTelegramAuth() {
             loginTime: new Date().toISOString()
         };
         
-        // UI ni yangilash
+        // UI yangilash
         document.getElementById('userName').textContent = currentUser.displayName;
         document.getElementById('userAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
         document.getElementById('profileName').textContent = currentUser.displayName;
@@ -61,12 +61,30 @@ async function initTelegramAuth() {
 }
 
 // ============================================
-// MAHSULOTLARNI GOOGLE SHEETS DAN YUKLASH
+// MAHSULOTLARNI YUKLASH
 // ============================================
 async function loadProducts() {
+    const container = document.getElementById('productsContainer');
+    container.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Mahsulotlar yuklanmoqda...</p></div>';
+    
     try {
-        const response = await fetch(`${API_URL}?action=getProducts`);
+        const url = `${API_URL}?action=getProducts&t=${Date.now()}`;
+        console.log('So\'rov yuborilmoqda:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache'
+        });
+        
+        console.log('Javob status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('Olingan ma\'lumot:', data);
         
         if (data.success) {
             allProducts = data.products || [];
@@ -78,13 +96,18 @@ async function loadProducts() {
         }
     } catch (error) {
         console.error('Yuklash xatosi:', error);
-        showToast('❌ Mahsulotlarni yuklashda xatolik: ' + error.message, 'error');
-        document.getElementById('productsContainer').innerHTML = `
+        showToast('❌ ' + error.message, 'error');
+        container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <p>Ulanishda xatolik</p>
                 <p style="font-size:12px;margin-top:8px;">${error.message}</p>
-                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;cursor:pointer;">🔄 Qayta urinish</button>
+                <p style="font-size:11px;margin-top:8px;color:var(--text-tertiary);">
+                    API URL: ${API_URL.substring(0, 50)}...
+                </p>
+                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;cursor:pointer;">
+                    🔄 Qayta urinish
+                </button>
             </div>
         `;
     }
@@ -140,6 +163,11 @@ function renderProducts(products) {
 // YANGI MAHSULOT QO'SHISH
 // ============================================
 async function addProduct() {
+    if (!currentUser) {
+        showToast('❌ Iltimos, qaytadan kiring!', 'error');
+        return;
+    }
+    
     const name = document.getElementById('productName').value.trim();
     const desc = document.getElementById('productDesc').value.trim();
     const price = document.getElementById('productPrice').value;
@@ -167,6 +195,7 @@ async function addProduct() {
         
         const response = await fetch(API_URL, {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData
         });
@@ -181,7 +210,6 @@ async function addProduct() {
             document.getElementById('productContact').value = '';
             await loadProducts();
             
-            // Home tab ga o'tish
             document.querySelector('.tab-btn[data-tab="home"]').click();
         } else {
             throw new Error(data.error || 'Qo\'shishda xatolik');
@@ -202,8 +230,6 @@ function showProductDetail(productId) {
     const product = allProducts.find(p => p.id == productId);
     if (!product) return;
     
-    const isOwner = currentUser && product.userId === currentUser.id;
-    
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
@@ -219,11 +245,9 @@ function showProductDetail(productId) {
                 <div class="info-row"><span class="info-label">💰 Narxi</span><span class="info-value" style="color:var(--success);font-weight:bold;">${formatPrice(product.price)} so'm</span></div>
                 <div class="info-row"><span class="info-label">📖 Tavsif</span><span class="info-value">${escapeHtml(product.description)}</span></div>
                 <div class="info-row"><span class="info-label">📞 Aloqa</span><span class="info-value">${escapeHtml(product.contact)}</span></div>
-                ${!isOwner ? `
-                    <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:var(--success);color:white;border:none;border-radius:12px;margin-top:16px;cursor:pointer;">
-                        📞 Bog'lanish
-                    </button>
-                ` : ''}
+                <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:var(--success);color:white;border:none;border-radius:12px;margin-top:16px;cursor:pointer;">
+                    📞 Bog'lanish
+                </button>
             </div>
         </div>
     `;
@@ -283,50 +307,6 @@ async function deleteMyProduct(rowIndex) {
 }
 
 // ============================================
-// PROFIL MA'LUMOTLARINI SAQLASH
-// ============================================
-async function saveProfile() {
-    const fullName = document.getElementById('fullName').value.trim();
-    const phone = document.getElementById('phoneNumber').value.trim();
-    
-    if (!fullName && !phone) {
-        showToast('⚠️ Hech qanday o\'zgarish kiritilmadi', 'warning');
-        return;
-    }
-    
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'saveProfile');
-        formData.append('userId', currentUser.id);
-        formData.append('fullName', fullName);
-        formData.append('phone', phone);
-        
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('✅ Profil ma\'lumotlari saqlandi!', 'success');
-            if (fullName) {
-                currentUser.displayName = fullName;
-                document.getElementById('userName').textContent = fullName;
-                document.getElementById('profileName').textContent = fullName;
-                document.getElementById('userAvatar').textContent = fullName.charAt(0).toUpperCase();
-                document.getElementById('profileAvatar').textContent = fullName.charAt(0).toUpperCase();
-            }
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        showToast('❌ ' + error.message, 'error');
-    }
-}
-
-// ============================================
 // YORDAMCHI FUNKSIYALAR
 // ============================================
 function getCategoryIcon(category) {
@@ -373,7 +353,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initTelegramAuth();
     await loadProducts();
     
-    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -384,7 +363,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Category filter
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -394,15 +372,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderProducts(allProducts);
     });
     
-    // Add product
     document.getElementById('addProductBtn').addEventListener('click', addProduct);
-    
-    // Save profile
     document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
 });
+
+// Save profile funksiyasi
+async function saveProfile() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveProfile');
+        formData.append('userId', currentUser.id);
+        formData.append('fullName', fullName);
+        formData.append('phone', phone);
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('✅ Profil saqlandi!', 'success');
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showToast('❌ ' + error.message, 'error');
+    }
+}
