@@ -16,6 +16,7 @@
         <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
     </div>
 
+    <!-- Asosiy ilova -->
     <div class="app-container" id="appContainer" style="display: none;">
         <!-- Header -->
         <div class="header">
@@ -56,7 +57,10 @@
                 </div>
             </div>
             <div id="productsContainer" class="products-container">
-                <div class="loading-state"><div class="loading-spinner"></div><p>Mahsulotlar yuklanmoqda...</p></div>
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Mahsulotlar yuklanmoqda...</p>
+                </div>
             </div>
         </div>
 
@@ -109,28 +113,62 @@
                 <div class="profile-avatar" id="profileAvatar">👤</div>
                 <h2 class="profile-name" id="profileName">Yuklanmoqda...</h2>
                 <div class="profile-username" id="profileUsername">@username</div>
-                <div class="security-badge"><span>🔒</span><span>Telegram orqali xavfsiz ulangan</span></div>
+                <div class="security-badge">
+                    <span>🔒</span>
+                    <span>Telegram orqali xavfsiz ulangan</span>
+                </div>
             </div>
 
             <div class="info-section">
-                <div class="info-title"><span>📋</span><span>Shaxsiy ma'lumotlar</span></div>
-                <div class="info-row"><span class="info-label">Telegram ID</span><span class="info-value" id="tgId">-</span></div>
-                <div class="info-row"><span class="info-label">Foydalanuvchi nomi</span><span class="info-value" id="tgUsername">-</span></div>
+                <div class="info-title">
+                    <span>📋</span>
+                    <span>Shaxsiy ma'lumotlar</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Telegram ID</span>
+                    <span class="info-value" id="tgId">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Foydalanuvchi nomi</span>
+                    <span class="info-value" id="tgUsername">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ulangan sana</span>
+                    <span class="info-value" id="loginDate">-</span>
+                </div>
             </div>
 
             <div class="info-section">
-                <div class="info-title"><span>📞</span><span>Kontakt ma'lumotlar</span></div>
-                <div class="form-group"><label>To'liq ism</label><input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz"></div>
-                <div class="form-group"><label>Telefon raqam</label><input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67"></div>
+                <div class="info-title">
+                    <span>📞</span>
+                    <span>Kontakt ma'lumotlar</span>
+                </div>
+                <div class="form-group">
+                    <label>To'liq ism</label>
+                    <input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz">
+                </div>
+                <div class="form-group">
+                    <label>Telefon raqam</label>
+                    <input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67">
+                </div>
                 <button id="saveProfileBtn" class="submit-btn">💾 Ma'lumotlarni saqlash</button>
             </div>
 
             <div class="info-section">
-                <div class="info-title"><span>📦</span><span>Mening e'lonlarim</span></div>
-                <div id="myProductsList"><div class="loading-state-small"><div class="loading-spinner-small"></div><p>Yuklanmoqda...</p></div></div>
+                <div class="info-title">
+                    <span>📦</span>
+                    <span>Mening e'lonlarim</span>
+                </div>
+                <div id="myProductsList">
+                    <div class="loading-state-small">
+                        <div class="loading-spinner-small"></div>
+                        <p>Yuklanmoqda...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Toast xabarlar -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
