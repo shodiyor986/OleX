@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>OleX Market | Savdo platformasi</title>
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Stil fayli -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Yuklanish ekrani -->
+    <!-- Yuklanish ekrani (Splash Screen) -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">🛍️</div>
         <div class="splash-title">OleX Market</div>
@@ -20,7 +18,7 @@
 
     <!-- Asosiy ilova konteyneri -->
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- Sarlavha (header) -->
+        <!-- Header (sarlavha) -->
         <div class="header">
             <div class="header-logo">
                 <span class="logo-icon">🛍️</span>
@@ -35,7 +33,7 @@
             </div>
         </div>
 
-        <!-- Navigatsiya tablari -->
+        <!-- Tab navigatsiya (4 ta bo'lim) -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
             <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
@@ -43,7 +41,7 @@
             <button class="tab-btn" data-tab="chat">💬 Chat</button>
         </div>
 
-        <!-- Bosh sahifa (mahsulotlar) -->
+        <!-- HOME TAB - Mahsulotlar ro'yxati -->
         <div class="tab-content active" id="homeTab">
             <div class="search-section">
                 <div class="search-box">
@@ -60,14 +58,11 @@
                 </div>
             </div>
             <div id="productsContainer" class="products-container">
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Mahsulotlar yuklanmoqda...</p>
-                </div>
+                <div class="loading-state"><div class="loading-spinner"></div><p>Mahsulotlar yuklanmoqda...</p></div>
             </div>
         </div>
 
-        <!-- E'lon berish sahifasi -->
+        <!-- ADD PRODUCT TAB - Yangi e'lon qo'shish -->
         <div class="tab-content" id="addTab">
             <div class="form-card">
                 <h3 class="form-title">➕ Yangi e'lon berish</h3>
@@ -113,7 +108,7 @@
             </div>
         </div>
 
-        <!-- Profil sahifasi -->
+        <!-- PROFILE TAB - Foydalanuvchi profili -->
         <div class="tab-content" id="profileTab">
             <div class="profile-card">
                 <div class="profile-avatar" id="profileAvatar">👤</div>
@@ -141,13 +136,11 @@
 
             <div class="info-section">
                 <div class="info-title"><span>📦</span><span>Mening e'lonlarim</span></div>
-                <div id="myProductsList">
-                    <div class="loading-state-small"><div class="loading-spinner-small"></div><p>Yuklanmoqda...</p></div>
-                </div>
+                <div id="myProductsList"><div class="loading-state-small"><div class="loading-spinner-small"></div><p>Yuklanmoqda...</p></div></div>
             </div>
         </div>
 
-        <!-- Chat sahifasi -->
+        <!-- CHAT TAB - Umumiy chat -->
         <div class="tab-content" id="chatTab">
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
@@ -160,11 +153,12 @@
             </div>
         </div>
 
-        <!-- Bildirishnoma konteyneri -->
+        <!-- Toast xabarlar uchun konteyner -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <!-- JavaScript fayli -->
-    <script src="script.js"></script>
+    <!-- Frontend JavaScript fayllari (yubor.js va qabul.js) -->
+    <script src="yubor.js"></script>
+    <script src="qabul.js"></script>
 </body>
 </html>
