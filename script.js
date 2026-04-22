@@ -2,22 +2,25 @@
 // OLEX MARKET - GOOGLE APPS SCRIPT API
 // ============================================
 
-// ⚠️ O'ZINGIZNING APPS SCRIPT URL INGIZNI QO'YING!
+// Apps Script URL (sizning deployed URL ingiz)
 const API_URL = 'https://script.google.com/macros/s/AKfycbx7YaVd4NeBTXyZeb9MUoNM_scfJzI18JwsDEmo9BdwuTkkS3abHY4TANoN9jDrbv5xMQ/exec';
 
+// Telegram WebApp
 const tg = window.Telegram.WebApp;
 let currentUser = null;
 let allProducts = [];
 
 // ============================================
-// TELEGRAM AUTH
+// TELEGRAM AUTHENTIFICATION
 // ============================================
 async function initTelegramAuth() {
     try {
         tg.ready();
         tg.expand();
+        tg.enableClosingConfirmation();
         
         const user = tg.initDataUnsafe?.user;
+        
         if (!user || !user.id) {
             throw new Error('Telegram foydalanuvchisi topilmadi');
         }
@@ -27,10 +30,11 @@ async function initTelegramAuth() {
             firstName: user.first_name || '',
             lastName: user.last_name || '',
             username: user.username || '',
-            displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`
+            displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`,
+            loginTime: new Date().toISOString()
         };
         
-        // UI yangilash
+        // UI ni yangilash
         document.getElementById('userName').textContent = currentUser.displayName;
         document.getElementById('userAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
         document.getElementById('profileName').textContent = currentUser.displayName;
@@ -38,21 +42,26 @@ async function initTelegramAuth() {
         document.getElementById('profileUsername').textContent = currentUser.username ? `@${currentUser.username}` : 'username yo\'q';
         document.getElementById('tgId').textContent = currentUser.id;
         document.getElementById('tgUsername').textContent = currentUser.username || '-';
+        document.getElementById('loginDate').textContent = new Date().toLocaleString('uz-UZ');
         
+        // Splash screen ni yashirish
         setTimeout(() => {
-            document.getElementById('splashScreen').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'block';
+            const splash = document.getElementById('splashScreen');
+            const app = document.getElementById('appContainer');
+            if (splash) splash.style.display = 'none';
+            if (app) app.style.display = 'block';
         }, 1500);
         
         return true;
     } catch (error) {
         console.error('Auth xatosi:', error);
+        showToast('❌ Autentifikatsiya xatosi!', 'error');
         return false;
     }
 }
 
 // ============================================
-// MAHSULOTLARNI YUKLASH
+// MAHSULOTLARNI GOOGLE SHEETS DAN YUKLASH
 // ============================================
 async function loadProducts() {
     try {
@@ -63,6 +72,7 @@ async function loadProducts() {
             allProducts = data.products || [];
             renderProducts(allProducts);
             loadMyProducts();
+            showToast(`✅ ${allProducts.length} ta mahsulot yuklandi`, 'success');
         } else {
             throw new Error(data.error || 'Ma\'lumot olishda xatolik');
         }
@@ -74,12 +84,15 @@ async function loadProducts() {
                 <div class="empty-icon">⚠️</div>
                 <p>Ulanishda xatolik</p>
                 <p style="font-size:12px;margin-top:8px;">${error.message}</p>
-                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;">🔄 Qayta urinish</button>
+                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;cursor:pointer;">🔄 Qayta urinish</button>
             </div>
         `;
     }
 }
 
+// ============================================
+// MAHSULOTLARNI KO'RSATISH
+// ============================================
 let currentFilter = 'all';
 let searchQuery = '';
 
@@ -108,7 +121,7 @@ function renderProducts(products) {
     container.innerHTML = `
         <div class="product-grid">
             ${filtered.map(product => `
-                <div class="product-card" onclick="showProductDetail('${product.id}')">
+                <div class="product-card" onclick="showProductDetail(${product.id})">
                     <div class="product-image">${getCategoryIcon(product.category)}</div>
                     <div class="product-info">
                         <div class="product-category">${escapeHtml(product.category)}</div>
@@ -189,6 +202,8 @@ function showProductDetail(productId) {
     const product = allProducts.find(p => p.id == productId);
     if (!product) return;
     
+    const isOwner = currentUser && product.userId === currentUser.id;
+    
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
@@ -204,9 +219,11 @@ function showProductDetail(productId) {
                 <div class="info-row"><span class="info-label">💰 Narxi</span><span class="info-value" style="color:var(--success);font-weight:bold;">${formatPrice(product.price)} so'm</span></div>
                 <div class="info-row"><span class="info-label">📖 Tavsif</span><span class="info-value">${escapeHtml(product.description)}</span></div>
                 <div class="info-row"><span class="info-label">📞 Aloqa</span><span class="info-value">${escapeHtml(product.contact)}</span></div>
-                <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:var(--success);color:white;border:none;border-radius:12px;margin-top:16px;cursor:pointer;">
-                    📞 Bog'lanish
-                </button>
+                ${!isOwner ? `
+                    <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:var(--success);color:white;border:none;border-radius:12px;margin-top:16px;cursor:pointer;">
+                        📞 Bog'lanish
+                    </button>
+                ` : ''}
             </div>
         </div>
     `;
@@ -266,12 +283,59 @@ async function deleteMyProduct(rowIndex) {
 }
 
 // ============================================
+// PROFIL MA'LUMOTLARINI SAQLASH
+// ============================================
+async function saveProfile() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    
+    if (!fullName && !phone) {
+        showToast('⚠️ Hech qanday o\'zgarish kiritilmadi', 'warning');
+        return;
+    }
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveProfile');
+        formData.append('userId', currentUser.id);
+        formData.append('fullName', fullName);
+        formData.append('phone', phone);
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('✅ Profil ma\'lumotlari saqlandi!', 'success');
+            if (fullName) {
+                currentUser.displayName = fullName;
+                document.getElementById('userName').textContent = fullName;
+                document.getElementById('profileName').textContent = fullName;
+                document.getElementById('userAvatar').textContent = fullName.charAt(0).toUpperCase();
+                document.getElementById('profileAvatar').textContent = fullName.charAt(0).toUpperCase();
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showToast('❌ ' + error.message, 'error');
+    }
+}
+
+// ============================================
 // YORDAMCHI FUNKSIYALAR
 // ============================================
 function getCategoryIcon(category) {
     const icons = {
-        'elektronika': '📱', 'kiyim-kechak': '👕', 'uy-joy': '🏠',
-        'transport': '🚗', 'boshqa': '📦'
+        'elektronika': '📱',
+        'kiyim-kechak': '👕',
+        'uy-joy': '🏠',
+        'transport': '🚗',
+        'boshqa': '📦'
     };
     return icons[category] || '📦';
 }
@@ -289,11 +353,17 @@ function escapeHtml(text) {
 
 function showToast(message, type) {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideInToast 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // ============================================
@@ -303,6 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initTelegramAuth();
     await loadProducts();
     
+    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -313,6 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
+    // Category filter
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -322,10 +394,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
+    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderProducts(allProducts);
     });
     
+    // Add product
     document.getElementById('addProductBtn').addEventListener('click', addProduct);
+    
+    // Save profile
+    document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
 });
