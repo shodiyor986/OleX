@@ -3,7 +3,7 @@
 // Telegram Web App SDK bilan to'liq integratsiya qilingan
 // =====================================================
 
-const API_URL = 'BU_YERGA_GOOGLE_APPS_SCRIPT_URL_QOYASIZ'; // <--- O'ZGARTIRISHNI UNUTMANG
+const API_URL = 'https://script.google.com/macros/s/AKfycbxenE0AM6qvA3C8b_1uPMrncnj-hjUuBI2MB6ynNwWZ7P3IMHDnVolxYYXENnnuku8wAg/exec'; // <--- O'ZGARTIRISHNI UNUTMANG
 
 let currentUser = null;
 let allProducts = [];
