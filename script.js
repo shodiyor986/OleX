@@ -3,7 +3,7 @@
 // ============================================
 
 // ⚠️ O'ZINGIZNING YANGI DEPLOY QILGAN URL INGIZNI QO'YING!
-const API_URL = 'https://script.google.com/macros/s/AKfycbx7YaVd4NeBTXyZeb9MUoNM_scfJzI18JwsDEmo9BdwuTkkS3abHY4TANoN9jDrbv5xMQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzIbIyP4iYdbk0pVC70Hb29NS1Ggmg429NeYeBWoxrVI3nnX9AxvBw5fPznDWnIKriAkQ/exec';
 
 
 // Telegram WebApp
