@@ -1,21 +1,16 @@
 // ============================================
-// OLEX MARKET - Google Sheets orqali
-// SIZNING SHEET ID (Google Sheets fayl ID si)
+// OLEX MARKET - Frontend JavaScript
 // ============================================
-const SHEET_ID = '17kp71tr4Ac0fY-pW-r_zwj0gXoeQ8Ax_ZHXoFrN-at4';
-// Sheet nomi (asosiy sahifa nomi)
-const SHEET_NAME = 'Sheet1'; // yoki 'Olex', sizning sheetdagi nom
 
-// Google Sheets ni CSV sifatida olish URL i
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+const API_URL = 'http://localhost:5000';
 
 let products = [];
 let isLoading = false;
 
 // ============================================
-// MAHSULOTLARNI GOOGLE SHEETS DAN O‘QISH
+// MAHSULOTLARNI YUKLASH
 // ============================================
-async function loadProductsFromSheet() {
+async function loadProducts() {
     if (isLoading) return;
     isLoading = true;
     
@@ -23,59 +18,27 @@ async function loadProductsFromSheet() {
     const container = document.getElementById('productsList');
     
     try {
-        statusDiv.innerHTML = '🟡 Google Sheets ga ulanish...';
+        statusDiv.innerHTML = '🟡 Maʼlumotlar yuklanmoqda...';
         statusDiv.style.background = '#fff3cd';
         statusDiv.style.color = '#856404';
         
-        // Google Sheets dan CSV ma'lumotni olish
-        const response = await fetch(SHEET_URL);
+        const response = await fetch(`${API_URL}/get_products`);
         
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        const csvText = await response.text();
+        const data = await response.json();
         
-        // CSV ni parse qilish
-        const rows = parseCSV(csvText);
-        
-        if (rows.length < 2) {
-            throw new Error('Sheetda maʼlumotlar topilmadi');
+        if (data.success) {
+            products = data.products || [];
+            statusDiv.innerHTML = `✅ ${products.length} ta mahsulot yuklandi`;
+            statusDiv.style.background = '#d4edda';
+            statusDiv.style.color = '#155724';
+            renderProducts(products);
+        } else {
+            throw new Error(data.error || 'Maʼlumot olishda xatolik');
         }
-        
-        // Birinchi qator sarlavhalar
-        const headers = rows[0];
-        
-        // Mahsulotlarni o‘qish
-        products = [];
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (row.length < 5) continue;
-            
-            // Sarlavhalarga qarab ma'lumotlarni olish
-            const product = {
-                id: i,
-                name: row[0] || '',
-                description: row[1] || '',
-                price: parseFloat(row[2]) || 0,
-                category: (row[3] || 'boshqa').toLowerCase(),
-                contact: row[4] || '',
-                date_added: row[5] || '',
-                status: row[6] || 'active'
-            };
-            
-            // Faqat active mahsulotlarni ko‘rsatish
-            if (product.status !== 'deleted' && product.name) {
-                products.push(product);
-            }
-        }
-        
-        statusDiv.innerHTML = `✅ ${products.length} ta mahsulot yuklandi (Google Sheets dan)`;
-        statusDiv.style.background = '#d4edda';
-        statusDiv.style.color = '#155724';
-        
-        // Mahsulotlarni ko‘rsatish
-        renderProducts(products);
         
     } catch (error) {
         console.error('Xatolik:', error);
@@ -84,13 +47,9 @@ async function loadProductsFromSheet() {
         statusDiv.style.color = '#721c24';
         container.innerHTML = `
             <div class="loading">
-                ❌ Google Sheets ga ulanishda xatolik<br>
+                ❌ Serverga ulanishda xatolik<br>
                 <small>${error.message}</small><br><br>
-                ⚠️ Sabablari:<br>
-                1. Sheet fayli "Har kim ko‘rishi mumkin" qilib sozlanmagan<br>
-                2. Sheet ID to‘g‘ri emas<br>
-                3. Internet aloqasi muammosi<br><br>
-                <button onclick="location.reload()" style="padding:8px 20px;margin-top:10px;">🔄 Qayta urinish</button>
+                <button onclick="location.reload()" style="padding:8px 20px;margin-top:10px;cursor:pointer;">🔄 Qayta urinish</button>
             </div>
         `;
     } finally {
@@ -99,80 +58,134 @@ async function loadProductsFromSheet() {
 }
 
 // ============================================
-// CSV PARSE FUNKSIYASI
-// ============================================
-function parseCSV(csvText) {
-    const rows = [];
-    let currentRow = [];
-    let currentCell = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < csvText.length; i++) {
-        const char = csvText[i];
-        const nextChar = csvText[i + 1];
-        
-        if (char === '"') {
-            if (inQuotes && nextChar === '"') {
-                currentCell += '"';
-                i++;
-            } else {
-                inQuotes = !inQuotes;
-            }
-        } else if (char === ',' && !inQuotes) {
-            currentRow.push(currentCell.trim());
-            currentCell = '';
-        } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !inQuotes) {
-            currentRow.push(currentCell.trim());
-            if (currentRow.length > 0 && currentRow.some(cell => cell !== '')) {
-                rows.push(currentRow);
-            }
-            currentRow = [];
-            currentCell = '';
-            if (char === '\r') i++;
-        } else {
-            currentCell += char;
-        }
-    }
-    
-    // Oxirgi qatorni qo‘shish
-    if (currentCell || currentRow.length > 0) {
-        currentRow.push(currentCell.trim());
-        if (currentRow.length > 0 && currentRow.some(cell => cell !== '')) {
-            rows.push(currentRow);
-        }
-    }
-    
-    return rows;
-}
-
-// ============================================
-// MAHSULOTLARNI KO‘RSATISH
+// MAHSULOTLARNI KO'RSATISH
 // ============================================
 function renderProducts(items) {
     const container = document.getElementById('productsList');
     
     if (!items || items.length === 0) {
-        container.innerHTML = `
-            <div class="loading">
-                📭 Hech qanday mahsulot topilmadi<br>
-                <small>Birinchi e'lonni qo'shish uchun Google Sheets ga ma'lumot qo'shing</small>
-            </div>
-        `;
+        container.innerHTML = `<div class="loading">📭 Hech qanday mahsulot topilmadi</div>`;
         return;
     }
     
     container.innerHTML = items.map(product => `
-        <div class="product-card">
+        <div class="product-card" onclick="showProductDetail('${product.id}')">
             <div class="product-image">${getCategoryIcon(product.category)}</div>
             <div class="product-info">
                 <div class="product-category">${escapeHtml(product.category)}</div>
                 <div class="product-name">${escapeHtml(product.name)}</div>
                 <div class="product-desc">${escapeHtml(product.description)}</div>
-                <div class="product-price">${formatPrice(product.price)} so‘m</div>
+                <div class="product-price">${formatPrice(product.price)} so'm</div>
                 <div class="product-contact">📞 ${escapeHtml(product.contact)}</div>
             </div>
         </div>
     `).join('');
+}
+
+// ============================================
+// MAHSULOT DETAIL
+// ============================================
+function showProductDetail(productId) {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="modal-close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <div style="text-align:center;font-size:64px;margin-bottom:16px;">${getCategoryIcon(product.category)}</div>
+            <h2 style="margin-bottom:8px;">${escapeHtml(product.name)}</h2>
+            <div style="color:#2c5f8a;font-weight:bold;margin-bottom:12px;">${formatPrice(product.price)} so'm</div>
+            <div style="margin-bottom:12px;"><strong>📖 Tavsif:</strong><br>${escapeHtml(product.description)}</div>
+            <div style="margin-bottom:12px;"><strong>📞 Aloqa:</strong> ${escapeHtml(product.contact)}</div>
+            <div style="margin-bottom:12px;"><strong>📅 Sana:</strong> ${product.date_added || 'Nomaʼlum'}</div>
+            <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:#2c5f8a;color:white;border:none;border-radius:40px;margin-top:16px;cursor:pointer;">
+                📞 Bog'lanish
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// ============================================
+// YANGI MAHSULOT QO'SHISH
+// ============================================
+async function addProduct() {
+    const name = document.getElementById('productName').value.trim();
+    const desc = document.getElementById('productDesc').value.trim();
+    const price = document.getElementById('productPrice').value;
+    const category = document.getElementById('productCategory').value;
+    const contact = document.getElementById('productContact').value.trim();
+    
+    if (!name || !desc || !price || !contact) {
+        alert('⚠️ Barcha maydonlarni to\'ldiring!');
+        return;
+    }
+    
+    const btn = document.getElementById('addProductBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Yuklanmoqda...';
+    
+    try {
+        const response = await fetch(`${API_URL}/add_product`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                description: desc,
+                price: parseFloat(price),
+                category: category,
+                contact: contact
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ Mahsulot muvaffaqiyatli qo\'shildi!');
+            document.getElementById('productName').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productContact').value = '';
+            loadProducts();
+        } else {
+            alert('❌ Xatolik: ' + data.error);
+        }
+    } catch (error) {
+        alert('❌ Server xatosi: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "✅ E'lonni joylash";
+    }
+}
+
+// ============================================
+// FILTER VA QIDIRUV
+// ============================================
+function filterProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    
+    let filtered = [...products];
+    
+    if (category !== 'all') {
+        filtered = filtered.filter(p => p.category === category);
+    }
+    
+    if (searchTerm) {
+        filtered = filtered.filter(p =>
+            p.name.toLowerCase().includes(searchTerm) ||
+            p.description.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    renderProducts(filtered);
 }
 
 // ============================================
@@ -201,86 +214,13 @@ function escapeHtml(text) {
 }
 
 // ============================================
-// FILTER VA QIDIRUV
-// ============================================
-function filterProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
-    
-    let filtered = [...products];
-    
-    if (category !== 'all') {
-        filtered = filtered.filter(p => p.category === category);
-    }
-    
-    if (searchTerm) {
-        filtered = filtered.filter(p =>
-            p.name.toLowerCase().includes(searchTerm) ||
-            p.description.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    renderProducts(filtered);
-}
-
-// ============================================
-// YANGI MAHSULOT QO‘SHISH (Google Forms orqali)
-// ============================================
-function addProductToSheet() {
-    // Google Sheets ga yozish uchun Google Forms yoki Apps Script kerak
-    // Hozircha browser da to‘g‘ridan-to‘g‘ri yozish imkoniyati cheklangan
-    
-    const name = document.getElementById('productName').value.trim();
-    const desc = document.getElementById('productDesc').value.trim();
-    const price = document.getElementById('productPrice').value;
-    const category = document.getElementById('productCategory').value;
-    const contact = document.getElementById('productContact').value.trim();
-    
-    if (!name || !desc || !price || !contact) {
-        alert('⚠️ Iltimos, barcha maydonlarni to‘ldiring!');
-        return;
-    }
-    
-    // Google Forms yaratish kerak yoki Apps Script Web App
-    // Vaqtinchalik: Google Sheets ga to‘g‘ridan-to‘g‘ri yozishni ko‘rsatamiz
-    
-    const newProductData = {
-        name: name,
-        description: desc,
-        price: price,
-        category: category,
-        contact: contact,
-        date: new Date().toLocaleString()
-    };
-    
-    // Ma'lumotni localStorage ga saqlash (vaqtinchalik)
-    let pendingProducts = JSON.parse(localStorage.getItem('olex_pending') || '[]');
-    pendingProducts.push(newProductData);
-    localStorage.setItem('olex_pending', JSON.stringify(pendingProducts));
-    
-    // Ko‘rsatma
-    alert(`✅ Ma'lumot vaqtincha saqlandi!\n\nGoogle Sheets ga qo‘shish uchun:\n1. Google Sheet faylini oching\n2. Quyidagi ma'lumotlarni qo‘shing:\n\nNomi: ${name}\nNarxi: ${price}\nKategoriya: ${category}\nAloqa: ${contact}\n\nYoki administrator bilan bog‘laning.`);
-    
-    // Formani tozalash
-    document.getElementById('productName').value = '';
-    document.getElementById('productDesc').value = '';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productContact').value = '';
-    
-    // Yangilash
-    loadProductsFromSheet();
-}
-
-// ============================================
 // EVENT LISTENERLAR
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Mahsulotlarni yuklash
-    loadProductsFromSheet();
+    loadProducts();
     
-    // Event listenerlar
-    document.getElementById('refreshBtn').addEventListener('click', loadProductsFromSheet);
-    document.getElementById('addProductBtn').addEventListener('click', addProductToSheet);
+    document.getElementById('refreshBtn').addEventListener('click', loadProducts);
+    document.getElementById('addProductBtn').addEventListener('click', addProduct);
     document.getElementById('searchInput').addEventListener('input', filterProducts);
     document.getElementById('categoryFilter').addEventListener('change', filterProducts);
 });
