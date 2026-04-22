@@ -4,7 +4,8 @@
 // ============================================
 
 // ⚠️ MUHIM: O'zingizning Apps Script URL ini qo'ying!
-const API_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+const SHEET_ID = '17kp71tr4Ac0fY-pW-r_zwj0gXoeQ8Ax_ZHXoFrN-at4';
+const SHEET_NAME = 'Olex test';  // Sheet nomini to'g'ri yozing!
 
 const tg = window.Telegram.WebApp;
 let currentUser = null;
