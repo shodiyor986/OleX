@@ -2,129 +2,54 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>OleX Market</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Olex | Savdo platformasi</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-logo">
-            <span class="logo-icon">🛍️</span>
-            <span class="logo-text">OleX Market</span>
+    <div class="app-container">
+        <header>
+            <h1>🛍️ Olex Market</h1>
+            <p>Xarid va sotuvning ishonchli platformasi</p>
+        </header>
+
+        <!-- Qidiruv va filtr -->
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="🔍 Mahsulot nomi yoki tavsif..." class="search-input">
+            <select id="categoryFilter" class="category-select">
+                <option value="all">📂 Barcha toifalar</option>
+                <option value="elektronika">📱 Elektronika</option>
+                <option value="kiyim-kechak">👕 Kiyim-kechak</option>
+                <option value="uy-joy">🏠 Uy-joy</option>
+                <option value="transport">🚗 Transport</option>
+                <option value="boshqa">📦 Boshqa</option>
+            </select>
+            <button id="refreshBtn" class="refresh-btn">🔄 Yangilash</button>
         </div>
-        <div class="header-user" onclick="window.location.href='profile.html'">
-            <div class="user-avatar" id="userAvatar">👤</div>
-            <div class="user-info">
-                <span class="user-name" id="userName">Yuklanmoqda...</span>
-                <span class="user-status">online</span>
-            </div>
+
+        <!-- Mahsulotlar ro'yxati -->
+        <div id="productsList" class="products-grid">
+            <div class="loading">⏳ Yuklanmoqda...</div>
+        </div>
+
+        <!-- Yangi mahsulot qo'shish formasi -->
+        <div class="add-product-form">
+            <h3>➕ Yangi e'lon qo'shish</h3>
+            <input type="text" id="productName" placeholder="Mahsulot nomi" class="form-input">
+            <textarea id="productDesc" placeholder="Tavsif" class="form-input"></textarea>
+            <input type="number" id="productPrice" placeholder="Narxi (so'm)" class="form-input">
+            <select id="productCategory" class="form-input">
+                <option value="elektronika">📱 Elektronika</option>
+                <option value="kiyim-kechak">👕 Kiyim-kechak</option>
+                <option value="uy-joy">🏠 Uy-joy</option>
+                <option value="transport">🚗 Transport</option>
+                <option value="boshqa">📦 Boshqa</option>
+            </select>
+            <input type="text" id="productContact" placeholder="Aloqa (telefon yoki @username)" class="form-input">
+            <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
         </div>
     </div>
 
-    <div class="search-section">
-        <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Mahsulot qidirish...">
-        </div>
-        <div class="categories" id="categories">
-            <button class="cat-btn active" data-cat="all">🏠 Barchasi</button>
-            <button class="cat-btn" data-cat="Telefonlar">📱 Telefonlar</button>
-            <button class="cat-btn" data-cat="Mashinalar">🚗 Mashinalar</button>
-            <button class="cat-btn" data-cat="Uy-joy">🏠 Uy-joy</button>
-            <button class="cat-btn" data-cat="Kiyimlar">👕 Kiyimlar</button>
-            <button class="cat-btn" data-cat="Elektronika">💻 Elektronika</button>
-            <button class="cat-btn" data-cat="Maishiy texnika">🔧 Maishiy texnika</button>
-            <button class="cat-btn" data-cat="Hayvonlar">🐕 Hayvonlar</button>
-            <button class="cat-btn" data-cat="Boshqa">📦 Boshqa</button>
-        </div>
-    </div>
-
-    <div class="products-container" id="productsContainer">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Mahsulotlar yuklanmoqda...</p>
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <a href="index.html" class="nav-item active">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Bosh sahifa</span>
-        </a>
-        <a href="#" class="nav-item" id="addProductBtn">
-            <span class="nav-icon">➕</span>
-            <span class="nav-label">E'lon berish</span>
-        </a>
-        <a href="chat.html" class="nav-item">
-            <span class="nav-icon">💬</span>
-            <span class="nav-label">Chat</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <span class="nav-icon">👤</span>
-            <span class="nav-label">Profil</span>
-        </a>
-    </div>
-
-    <!-- Add Product Modal -->
-    <div class="modal" id="addModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>➕ Yangi e'lon</h3>
-                <button class="modal-close" onclick="closeAddModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Kategoriya *</label>
-                    <select id="productCategory" class="form-input">
-                        <option value="">Tanlang...</option>
-                        <option value="Telefonlar">📱 Telefonlar</option>
-                        <option value="Mashinalar">🚗 Mashinalar</option>
-                        <option value="Uy-joy">🏠 Uy-joy</option>
-                        <option value="Kiyimlar">👕 Kiyimlar</option>
-                        <option value="Elektronika">💻 Elektronika</option>
-                        <option value="Maishiy texnika">🔧 Maishiy texnika</option>
-                        <option value="Hayvonlar">🐕 Hayvonlar</option>
-                        <option value="Boshqa">📦 Boshqa</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Mahsulot nomi *</label>
-                    <input type="text" id="productName" class="form-input" placeholder="Masalan: iPhone 15 Pro">
-                </div>
-                <div class="form-group">
-                    <label>Narxi (so'm) *</label>
-                    <input type="number" id="productPrice" class="form-input" placeholder="15000000">
-                </div>
-                <div class="form-group">
-                    <label>Tavsif *</label>
-                    <textarea id="productDesc" class="form-input" rows="3" placeholder="Mahsulot haqida batafsil ma'lumot..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Telefon raqam *</label>
-                    <input type="tel" id="productPhone" class="form-input" placeholder="+998 90 123 45 67">
-                </div>
-                <div class="form-group">
-                    <label>Rasm URL (ixtiyoriy)</label>
-                    <input type="url" id="productImage" class="form-input" placeholder="https://...">
-                </div>
-                <button class="btn-submit" onclick="submitProduct()">✅ E'lonni joylash</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Detail Modal -->
-    <div class="modal" id="detailModal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>Mahsulot tafsilotlari</h3>
-                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="detailBody"></div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
