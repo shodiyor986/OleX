@@ -61,8 +61,11 @@ function showToast(msg, type = 'success') {
 // BARCHA MA'LUMOTLARNI YUKLASH (Products + Chat)
 async function loadData() {
     try {
-        const res = await fetch(`${API_URL}?action=getAllData`);
+        // DIQQAT: API_URL oxiriga keshni tozalovchi t= param qo'shildi
+        const url = `${API_URL}?action=getAllData&t=${new Date().getTime()}`;
+        const res = await fetch(url);
         const data = await res.json();
+        
         if (data.success) {
             allProducts = data.products || [];
             chatMessages = data.messages || [];
@@ -71,7 +74,7 @@ async function loadData() {
             renderChat();
         }
     } catch (err) {
-        showToast('Internetga ulanishda xatolik yoki server javob bermadi', 'error');
+        console.error("Ma'lumot yuklashda xatolik: ", err);
     }
 }
 
