@@ -4,29 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>OleX Market | Savdo platformasi</title>
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- CSS stillar (sizning mavjud style.css) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ==================== SPLASH SCREEN (YUKLANISH EKRANI) ==================== -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">🛍️</div>
         <div class="splash-title">OleX Market</div>
         <div class="splash-spinner"></div>
-        <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
+        <div class="splash-text">Telegram xavfsiz ulanish tekshirilmoqda...</div>
     </div>
 
-    <!-- ==================== ASOSIY ILOVA KONTEYNERI ==================== -->
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- -------------------- HEADER -------------------- -->
         <div class="header">
             <div class="header-logo">
                 <span class="logo-icon">🛍️</span>
                 <span class="logo-text">OleX Market</span>
             </div>
-            <div class="header-user" id="userMenuBtn">
+            <div class="header-user">
                 <div class="user-avatar" id="userAvatar">👤</div>
                 <div class="user-info">
                     <span class="user-name" id="userName">Yuklanmoqda...</span>
@@ -35,7 +31,6 @@
             </div>
         </div>
 
-        <!-- -------------------- TABLAR (4 BO'LIM) -------------------- -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
             <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
@@ -43,9 +38,7 @@
             <button class="tab-btn" data-tab="chat">💬 Chat</button>
         </div>
 
-        <!-- ==================== HOME TAB (MAHSULOTLAR) ==================== -->
         <div class="tab-content active" id="homeTab">
-            <!-- Qidiruv va kategoriyalar -->
             <div class="search-section">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -60,16 +53,9 @@
                     <button class="cat-btn" data-cat="boshqa">📦 Boshqa</button>
                 </div>
             </div>
-            <!-- Mahsulotlar ro'yxati shu yerga yuklanadi (qabul.js orqali) -->
-            <div id="productsContainer" class="products-container">
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Mahsulotlar yuklanmoqda...</p>
-                </div>
-            </div>
+            <div id="productsContainer" class="products-container"></div>
         </div>
 
-        <!-- ==================== ADD TAB (YANGI E'LON QO'SHISH) ==================== -->
         <div class="tab-content" id="addTab">
             <div class="form-card">
                 <h3 class="form-title">➕ Yangi e'lon berish</h3>
@@ -83,84 +69,34 @@
                         <option value="boshqa">📦 Boshqa</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>📝 Mahsulot nomi</label>
-                    <input type="text" id="productName" class="form-input" placeholder="Masalan: iPhone 15 Pro">
-                </div>
-                <div class="form-group">
-                    <label>💰 Narxi (so'm)</label>
-                    <input type="number" id="productPrice" class="form-input" placeholder="15000000">
-                </div>
-                <div class="form-group">
-                    <label>📖 Tavsif</label>
-                    <textarea id="productDesc" class="form-input" rows="3" placeholder="Mahsulot haqida batafsil ma'lumot..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>📞 Aloqa uchun telefon</label>
-                    <input type="tel" id="productContact" class="form-input" placeholder="+998 90 123 45 67">
-                </div>
-                <div class="form-group">
-                    <label>🖼️ Rasm (ixtiyoriy)</label>
-                    <input type="file" id="productImage" class="form-input" accept="image/*">
-                </div>
+                <div class="form-group"><label>📝 Mahsulot nomi</label><input type="text" id="productName" class="form-input" placeholder="Masalan: iPhone 15 Pro"></div>
+                <div class="form-group"><label>💰 Narxi (so'm)</label><input type="number" id="productPrice" class="form-input" placeholder="15000000"></div>
+                <div class="form-group"><label>📖 Tavsif</label><textarea id="productDesc" class="form-input" rows="3" placeholder="Mahsulot haqida batafsil ma'lumot..."></textarea></div>
+                <div class="form-group"><label>📞 Aloqa uchun telefon</label><input type="tel" id="productContact" class="form-input" placeholder="+998 90 123 45 67"></div>
+                <div class="form-group"><label>🖼️ Rasm (ixtiyoriy)</label><input type="file" id="productImage" class="form-input" accept="image/*"></div>
                 <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
-            </div>
-            <div class="info-card">
-                <div class="info-icon">🔒</div>
-                <div class="info-text">
-                    <strong>Xavfsizlik kafolati</strong><br>
-                    Barcha e'lonlar sizning Telegram profilingiz bilan bog'lanadi.<br>
-                    Faqat siz o'z e'lonlaringizni o'chira olasiz.
-                </div>
             </div>
         </div>
 
-        <!-- ==================== PROFILE TAB (FOYDALANUVCHI PROFILI) ==================== -->
         <div class="tab-content" id="profileTab">
             <div class="profile-card">
                 <div class="profile-avatar" id="profileAvatar">👤</div>
                 <h2 class="profile-name" id="profileName">Yuklanmoqda...</h2>
                 <div class="profile-username" id="profileUsername">@username</div>
-                <div class="security-badge">
-                    <span>🔒</span>
-                    <span>Telegram orqali xavfsiz ulangan</span>
-                </div>
             </div>
-
             <div class="info-section">
                 <div class="info-title"><span>📋</span><span>Shaxsiy ma'lumotlar</span></div>
                 <div class="info-row"><span class="info-label">Telegram ID</span><span class="info-value" id="tgId">-</span></div>
-                <div class="info-row"><span class="info-label">Foydalanuvchi nomi</span><span class="info-value" id="tgUsername">-</span></div>
-                <div class="info-row"><span class="info-label">Ulangan sana</span><span class="info-value" id="loginDate">-</span></div>
             </div>
-
-            <div class="info-section">
-                <div class="info-title"><span>📞</span><span>Kontakt ma'lumotlar</span></div>
-                <div class="form-group"><label>To'liq ism</label><input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz"></div>
-                <div class="form-group"><label>Telefon raqam</label><input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67"></div>
-                <button id="saveProfileBtn" class="submit-btn">💾 Ma'lumotlarni saqlash</button>
-            </div>
-
             <div class="info-section">
                 <div class="info-title"><span>📦</span><span>Mening e'lonlarim</span></div>
-                <div id="myProductsList">
-                    <div class="loading-state-small">
-                        <div class="loading-spinner-small"></div>
-                        <p>Yuklanmoqda...</p>
-                    </div>
-                </div>
+                <div id="myProductsList"></div>
             </div>
         </div>
 
-        <!-- ==================== CHAT TAB (UMUMIY CHAT) ==================== -->
         <div class="tab-content" id="chatTab">
             <div class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="loading-state">
-                        <div class="loading-spinner"></div>
-                        <p>Xabarlar yuklanmoqda...</p>
-                    </div>
-                </div>
+                <div class="chat-messages" id="chatMessages"></div>
                 <div class="chat-input-area">
                     <input type="text" id="chatInput" class="chat-input" placeholder="Xabar yozing...">
                     <button id="sendChatBtn" class="send-btn">➤</button>
@@ -168,12 +104,9 @@
             </div>
         </div>
 
-        <!-- Toast xabarlar uchun konteyner -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <!-- JavaScript fayllari (yubor.js va qabul.js – sizda mavjud) -->
-    <script src="yubor.js"></script>
-    <script src="qabul.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
