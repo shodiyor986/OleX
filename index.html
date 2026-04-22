@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Olex | Savdo platformasi</title>
+    <title>OleX Market | Savdo platformasi</title>
     <link rel="stylesheet" href="style.css">
-    <!-- SheetJS kutubxonasi Excel/Sheet o‘qish uchun -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>🛍️ Olex Market</h1>
+            <h1>🛍️ OleX Market</h1>
             <p>Xarid va sotuvning ishonchli platformasi</p>
             <div class="connection-status" id="connStatus">🟡 Ulanish tekshirilmoqda...</div>
         </header>
 
-        <!-- Qidiruv va filtr -->
         <div class="controls">
             <input type="text" id="searchInput" placeholder="🔍 Mahsulot nomi yoki tavsif..." class="search-input">
             <select id="categoryFilter" class="category-select">
@@ -30,17 +27,15 @@
             <button id="refreshBtn" class="refresh-btn">🔄 Yangilash</button>
         </div>
 
-        <!-- Mahsulotlar ro'yxati -->
         <div id="productsList" class="products-grid">
             <div class="loading">⏳ Yuklanmoqda...</div>
         </div>
 
-        <!-- Yangi mahsulot qo'shish formasi -->
         <div class="add-product-form">
             <h3>➕ Yangi e'lon qo'shish</h3>
-            <input type="text" id="productName" placeholder="Mahsulot nomi" class="form-input">
-            <textarea id="productDesc" placeholder="Tavsif" class="form-input" rows="3"></textarea>
-            <input type="number" id="productPrice" placeholder="Narxi (so'm)" class="form-input">
+            <input type="text" id="productName" placeholder="Mahsulot nomi *" class="form-input">
+            <textarea id="productDesc" placeholder="Tavsif *" class="form-input" rows="3"></textarea>
+            <input type="number" id="productPrice" placeholder="Narxi (so'm) *" class="form-input">
             <select id="productCategory" class="form-input">
                 <option value="elektronika">📱 Elektronika</option>
                 <option value="kiyim-kechak">👕 Kiyim-kechak</option>
@@ -48,9 +43,8 @@
                 <option value="transport">🚗 Transport</option>
                 <option value="boshqa">📦 Boshqa</option>
             </select>
-            <input type="text" id="productContact" placeholder="Aloqa (telefon yoki @username)" class="form-input">
+            <input type="text" id="productContact" placeholder="Aloqa (telefon yoki @username) *" class="form-input">
             <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
-            <p class="info-note">⚠️ E'lon qo'shish uchun Google Sheet ga kirish huquqi kerak. Hozircha faqat o'qish rejimi.</p>
         </div>
     </div>
 
