@@ -1,23 +1,37 @@
 // ============================================
-// OLEX MARKET - TO'LIQ ISHLAYDI
+// OLEX MARKET - FULL VERSION
+// Google Drive + Telegram WebApp
 // ============================================
 
-// ⚠️ O'ZINGIZNING YANGI DEPLOY QILGAN URL INGIZNI QO'YING!
-const API_URL = 'https://script.google.com/macros/s/AKfycbzIbIyP4iYdbk0pVC70Hb29NS1Ggmg429NeYeBWoxrVI3nnX9AxvBw5fPznDWnIKriAkQ/exec';
+// ⚠️ Google Apps Script URL (deploy qilingandan keyin qo'yiladi)
+const API_URL = 'https://script.google.com/macros/s/AKfycbxwIp99MgNyJN65DpFhSCrhLtRuM0X0TOvPqbkM8yBWdFGIm6mDmnQhp59gkWBrYv88/exec';
 
+// Google Drive papkalari ID'lari
+const FOLDERS = {
+    olex: '1f4P1p2TP8ftbQiSXB-ulwKsEMaUpeu94',
+    images: '1lFKoDCNvHIlgSCUbEYRr2zcOKrELO4dx'
+};
+
+// Sheets ID'lari
+const SHEETS = {
+    products: '18AdwNA4paO40DXekWME2jg-ChD_kKh1g2gN2hFO6X8o',
+    chat: '15MGWdJgI-Pgib3mPYy-_sXGkD40-Im2hugia9AEZqb4'
+};
 
 // Telegram WebApp
 const tg = window.Telegram.WebApp;
 let currentUser = null;
 let allProducts = [];
+let chatMessages = [];
 
 // ============================================
-// TELEGRAM AUTH
+// TELEGRAM AUTHENTIFICATION
 // ============================================
 async function initTelegramAuth() {
     try {
         tg.ready();
         tg.expand();
+        tg.enableClosingConfirmation();
         
         const user = tg.initDataUnsafe?.user;
         
@@ -42,7 +56,6 @@ async function initTelegramAuth() {
         document.getElementById('profileUsername').textContent = currentUser.username ? `@${currentUser.username}` : 'username yo\'q';
         document.getElementById('tgId').textContent = currentUser.id;
         document.getElementById('tgUsername').textContent = currentUser.username || '-';
-        document.getElementById('loginDate').textContent = new Date().toLocaleString('uz-UZ');
         
         // Splash screen ni yashirish
         setTimeout(() => {
@@ -69,22 +82,11 @@ async function loadProducts() {
     
     try {
         const url = `${API_URL}?action=getProducts&t=${Date.now()}`;
-        console.log('So\'rov yuborilmoqda:', url);
+        const response = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-cache' });
         
-        const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache'
-        });
-        
-        console.log('Javob status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const data = await response.json();
-        console.log('Olingan ma\'lumot:', data);
         
         if (data.success) {
             allProducts = data.products || [];
@@ -101,13 +103,7 @@ async function loadProducts() {
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <p>Ulanishda xatolik</p>
-                <p style="font-size:12px;margin-top:8px;">${error.message}</p>
-                <p style="font-size:11px;margin-top:8px;color:var(--text-tertiary);">
-                    API URL: ${API_URL.substring(0, 50)}...
-                </p>
-                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;cursor:pointer;">
-                    🔄 Qayta urinish
-                </button>
+                <button onclick="loadProducts()" style="margin-top:16px;padding:8px 20px;background:var(--accent);border:none;border-radius:20px;color:white;cursor:pointer;">🔄 Qayta urinish</button>
             </div>
         `;
     }
@@ -145,7 +141,9 @@ function renderProducts(products) {
         <div class="product-grid">
             ${filtered.map(product => `
                 <div class="product-card" onclick="showProductDetail(${product.id})">
-                    <div class="product-image">${getCategoryIcon(product.category)}</div>
+                    <div class="product-image">
+                        ${product.imageUrl ? `<img src="${product.imageUrl}" style="width:100%;height:100%;object-fit:cover;">` : getCategoryIcon(product.category)}
+                    </div>
                     <div class="product-info">
                         <div class="product-category">${escapeHtml(product.category)}</div>
                         <div class="product-name">${escapeHtml(product.name)}</div>
@@ -173,6 +171,7 @@ async function addProduct() {
     const price = document.getElementById('productPrice').value;
     const category = document.getElementById('productCategory').value;
     const contact = document.getElementById('productContact').value.trim();
+    const imageFile = document.getElementById('productImage').files[0];
     
     if (!name || !desc || !price || !contact) {
         showToast('⚠️ Barcha maydonlarni to\'ldiring!', 'warning');
@@ -184,6 +183,33 @@ async function addProduct() {
     btn.textContent = '⏳ Yuklanmoqda...';
     
     try {
+        let imageUrl = '';
+        
+        // Rasm bo'lsa, Google Drive ga yuklash
+        if (imageFile) {
+            const reader = new FileReader();
+            imageUrl = await new Promise((resolve) => {
+                reader.onload = async (e) => {
+                    const base64 = e.target.result.split(',')[1];
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'uploadImage');
+                    formData.append('image', base64);
+                    formData.append('fileName', imageFile.name);
+                    formData.append('folderId', FOLDERS.images);
+                    
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    resolve(data.url || '');
+                };
+                reader.readAsDataURL(imageFile);
+            });
+        }
+        
+        // Mahsulotni qo'shish
         const formData = new URLSearchParams();
         formData.append('action', 'addProduct');
         formData.append('name', name);
@@ -192,10 +218,10 @@ async function addProduct() {
         formData.append('category', category);
         formData.append('contact', contact);
         formData.append('userId', currentUser.id);
+        formData.append('imageUrl', imageUrl);
         
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'cors',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData
         });
@@ -208,8 +234,8 @@ async function addProduct() {
             document.getElementById('productDesc').value = '';
             document.getElementById('productPrice').value = '';
             document.getElementById('productContact').value = '';
+            document.getElementById('productImage').value = '';
             await loadProducts();
-            
             document.querySelector('.tab-btn[data-tab="home"]').click();
         } else {
             throw new Error(data.error || 'Qo\'shishda xatolik');
@@ -240,7 +266,9 @@ function showProductDetail(productId) {
                 <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
             </div>
             <div class="modal-body">
-                <div style="text-align:center;font-size:64px;margin-bottom:16px;">${getCategoryIcon(product.category)}</div>
+                <div style="text-align:center;margin-bottom:16px;">
+                    ${product.imageUrl ? `<img src="${product.imageUrl}" style="width:200px;height:200px;object-fit:cover;border-radius:16px;">` : `<div style="font-size:64px;">${getCategoryIcon(product.category)}</div>`}
+                </div>
                 <div class="info-row"><span class="info-label">📌 Kategoriya</span><span class="info-value">${escapeHtml(product.category)}</span></div>
                 <div class="info-row"><span class="info-label">💰 Narxi</span><span class="info-value" style="color:var(--success);font-weight:bold;">${formatPrice(product.price)} so'm</span></div>
                 <div class="info-row"><span class="info-label">📖 Tavsif</span><span class="info-value">${escapeHtml(product.description)}</span></div>
@@ -268,7 +296,7 @@ function loadMyProducts() {
     
     container.innerHTML = myProducts.map(p => `
         <div class="my-product-item">
-            <div class="my-product-icon">${getCategoryIcon(p.category)}</div>
+            <div class="my-product-icon">${p.imageUrl ? '🖼️' : getCategoryIcon(p.category)}</div>
             <div class="my-product-info">
                 <div class="my-product-name">${escapeHtml(p.name)}</div>
                 <div class="my-product-price">${formatPrice(p.price)} so'm</div>
@@ -307,15 +335,121 @@ async function deleteMyProduct(rowIndex) {
 }
 
 // ============================================
+// CHAT FUNKSIYALARI
+// ============================================
+async function loadChat() {
+    try {
+        const url = `${API_URL}?action=getMessages&t=${Date.now()}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            chatMessages = data.messages || [];
+            renderChat();
+        }
+    } catch (error) {
+        console.error('Chat yuklash xatosi:', error);
+    }
+}
+
+function renderChat() {
+    const container = document.getElementById('chatMessages');
+    
+    if (chatMessages.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Hozircha xabarlar yo\'q</p></div>';
+        return;
+    }
+    
+    container.innerHTML = chatMessages.map(msg => {
+        const isSent = currentUser && msg.userId === currentUser.id;
+        return `
+            <div class="message ${isSent ? 'sent' : 'received'}">
+                ${!isSent ? `<div class="message-sender">${escapeHtml(msg.senderName)}</div>` : ''}
+                <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                <div class="message-time">${msg.time || new Date(msg.date).toLocaleTimeString()}</div>
+            </div>
+        `;
+    }).join('');
+    
+    const containerEl = document.getElementById('chatMessages');
+    containerEl.scrollTop = containerEl.scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    
+    if (!text || !currentUser) return;
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'sendMessage');
+        formData.append('userId', currentUser.id);
+        formData.append('senderName', currentUser.displayName);
+        formData.append('text', text);
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            input.value = '';
+            await loadChat();
+        }
+    } catch (error) {
+        console.error('Xabar yuborish xatosi:', error);
+        showToast('❌ Xabar yuborilmadi', 'error');
+    }
+}
+
+// ============================================
+// PROFIL MA'LUMOTLARINI SAQLASH
+// ============================================
+async function saveProfile() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveProfile');
+        formData.append('userId', currentUser.id);
+        formData.append('fullName', fullName);
+        formData.append('phone', phone);
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('✅ Profil saqlandi!', 'success');
+            if (fullName) {
+                currentUser.displayName = fullName;
+                document.getElementById('userName').textContent = fullName;
+                document.getElementById('profileName').textContent = fullName;
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showToast('❌ ' + error.message, 'error');
+    }
+}
+
+// ============================================
 // YORDAMCHI FUNKSIYALAR
 // ============================================
 function getCategoryIcon(category) {
     const icons = {
-        'elektronika': '📱',
-        'kiyim-kechak': '👕',
-        'uy-joy': '🏠',
-        'transport': '🚗',
-        'boshqa': '📦'
+        'elektronika': '📱', 'kiyim-kechak': '👕', 'uy-joy': '🏠',
+        'transport': '🚗', 'boshqa': '📦'
     };
     return icons[category] || '📦';
 }
@@ -352,7 +486,9 @@ function showToast(message, type) {
 document.addEventListener('DOMContentLoaded', async () => {
     await initTelegramAuth();
     await loadProducts();
+    await loadChat();
     
+    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -360,9 +496,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(`${tabId}Tab`).classList.add('active');
+            
+            if (tabId === 'chat') loadChat();
         });
     });
     
+    // Category filter
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -372,41 +511,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
+    // Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderProducts(allProducts);
     });
     
+    // Add product
     document.getElementById('addProductBtn').addEventListener('click', addProduct);
-    document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
-});
-
-// Save profile funksiyasi
-async function saveProfile() {
-    const fullName = document.getElementById('fullName').value.trim();
-    const phone = document.getElementById('phoneNumber').value.trim();
     
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'saveProfile');
-        formData.append('userId', currentUser.id);
-        formData.append('fullName', fullName);
-        formData.append('phone', phone);
-        
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('✅ Profil saqlandi!', 'success');
-        } else {
-            throw new Error(data.error);
+    // Save profile
+    document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+    
+    // Chat
+    document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    // Har 5 sekundda chatni yangilash
+    setInterval(() => {
+        if (document.querySelector('.tab-btn[data-tab="chat"]').classList.contains('active')) {
+            loadChat();
         }
-    } catch (error) {
-        showToast('❌ ' + error.message, 'error');
-    }
-}
+    }, 5000);
+});
