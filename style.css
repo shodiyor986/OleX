@@ -1,25 +1,26 @@
-/* =====================================================
-   style.css - OLEX MARKET - YORQIN VA ANIQ VERSIYA
-   Barcha ranglar kontrastli, hech narsa qorong'ulikda yo'qolmaydi.
-   ===================================================== */
+/* ==============================================
+   OLEX MARKET - ZAMONAVIY GLASS DESIGN
+   Barcha ranglar, soyalar, animatsiyalar yangilangan
+   ============================================== */
 
-/* -------------------- GLOBAL O'ZGARUVCHILAR -------------------- */
 :root {
-    --bg-primary: #0f172a;        /* Asosiy fon – to'q ko'k, ammo matn oq */
-    --bg-secondary: #1e293b;      /* Sarlavha va tablar foni */
-    --bg-card: #334155;           /* Kartalar foni – yorqinroq */
-    --bg-input: #475569;          /* Input foni – aniq farqlanadi */
-    --border: #475569;            /* Chegaralar */
-    --accent: #3b82f6;            /* Moviy aksent */
-    --accent-hover: #2563eb;
-    --success: #10b981;           /* Yashil */
-    --danger: #ef4444;            /* Qizil */
-    --warning: #f59e0b;           /* Sariq */
-    --text-primary: #f1f5f9;      /* Asosiy matn – och oq */
-    --text-secondary: #cbd5e1;    /* Ikkinchi darajali matn */
-    --text-tertiary: #94a3b8;     /* Uchinchi darajali matn */
-    --radius: 14px;
-    --radius-sm: 10px;
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --glass-bg: rgba(30, 41, 59, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --accent: #3b82f6;
+    --accent-glow: #60a5fa;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
 }
 
 * {
@@ -30,13 +31,14 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg-primary);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-gradient);
     color: var(--text-primary);
     min-height: 100vh;
+    backdrop-filter: blur(2px);
 }
 
-/* -------------------- SPLASH SCREEN (YUKLANISH EKRANI) -------------------- */
+/* -------------------- SPLASH SCREEN -------------------- */
 .splash-screen {
     position: fixed;
     top: 0;
@@ -49,58 +51,64 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeOut 0.5s ease 2s forwards; /* 2 sekunddan keyin yo'qoladi */
+    animation: fadeOut 0.6s ease 2s forwards;
 }
 
 @keyframes fadeOut {
-    to {
-        opacity: 0;
-        visibility: hidden;
-    }
+    to { opacity: 0; visibility: hidden; }
 }
 
 .splash-logo {
-    font-size: 80px;
-    animation: bounce 0.6s ease;
+    font-size: 90px;
+    animation: float 1.2s ease-in-out infinite;
 }
-@keyframes bounce {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
+@keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
 }
 
 .splash-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-top: 16px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    font-size: 32px;
+    font-weight: 800;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #3b82f6, #a855f7);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
 }
 
 .splash-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #334155;
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(59,130,246,0.2);
     border-top-color: #3b82f6;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 30px 0 16px;
+    animation: spin 0.9s linear infinite;
+    margin: 32px 0 20px;
 }
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .splash-text {
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
 }
 
-/* -------------------- ASOSIY KONTEYNER -------------------- */
+/* -------------------- GLASS (SHAFFOF) KOMPONENTLAR -------------------- */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+/* -------------------- APP KONTEYNER -------------------- */
 .app-container {
     max-width: 600px;
     margin: 0 auto;
-    padding-bottom: 80px;
+    padding-bottom: 85px;
     min-height: 100vh;
 }
 
@@ -108,27 +116,25 @@ body {
 .header {
     position: sticky;
     top: 0;
-    background: var(--bg-secondary);
-    backdrop-filter: blur(10px);
-    padding: 12px 16px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border);
+    align-items: center;
+    padding: 14px 18px;
+    margin: 12px 16px;
     z-index: 100;
 }
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 .logo-icon {
-    font-size: 24px;
+    font-size: 28px;
 }
 .logo-text {
-    font-size: 18px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, #93c5fd);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -136,24 +142,24 @@ body {
 .header-user {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 30px;
-    transition: background 0.2s;
+    padding: 6px 12px;
+    border-radius: 40px;
+    transition: all 0.2s;
 }
 .header-user:active {
-    background: var(--bg-card);
+    background: rgba(255,255,255,0.1);
 }
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #3b82f6, #a855f7);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 18px;
 }
 .user-info {
@@ -161,46 +167,46 @@ body {
     flex-direction: column;
 }
 .user-name {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 15px;
+    font-weight: 600;
 }
 .user-status {
     font-size: 10px;
-    color: #10b981;
+    color: #34d399;
 }
 
 /* -------------------- TABLAR -------------------- */
 .tabs {
-    position: sticky;
-    top: 60px;
-    background: var(--bg-secondary);
     display: flex;
-    padding: 8px 16px;
+    margin: 0 16px 16px;
+    padding: 6px;
     gap: 8px;
-    border-bottom: 1px solid var(--border);
-    z-index: 99;
 }
 .tab-btn {
     flex: 1;
-    padding: 10px;
+    padding: 12px 0;
     background: none;
     border: none;
-    border-radius: 30px;
+    border-radius: 40px;
     color: var(--text-tertiary);
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s;
 }
 .tab-btn.active {
     background: var(--accent);
     color: white;
+    box-shadow: 0 0 12px rgba(59,130,246,0.5);
 }
+
+/* Tab mazmuni */
 .tab-content {
     display: none;
-    padding: 16px;
-    animation: fadeIn 0.3s ease;
+    padding: 0 16px 16px;
+    animation: fadeSlide 0.3s ease;
 }
-@keyframes fadeIn {
+@keyframes fadeSlide {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -209,51 +215,46 @@ body {
 }
 
 /* -------------------- QIDIRUV VA KATEGORIYALAR -------------------- */
-.search-section {
-    margin-bottom: 16px;
-}
 .search-box {
-    position: relative;
-    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    margin-bottom: 20px;
 }
 .search-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
+    font-size: 18px;
     color: var(--text-tertiary);
+    margin-right: 10px;
 }
 .search-input {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 12px 16px 12px 42px;
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 0;
     color: var(--text-primary);
-    font-size: 15px;
+    font-size: 16px;
     outline: none;
 }
-.search-input:focus {
-    border-color: var(--accent);
+.search-input::placeholder {
+    color: var(--text-tertiary);
 }
 .categories {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     overflow-x: auto;
-    padding: 4px 0 8px;
-    scrollbar-width: none;
-}
-.categories::-webkit-scrollbar {
-    display: none;
+    padding: 6px 0 12px;
+    scrollbar-width: thin;
 }
 .cat-btn {
     flex-shrink: 0;
-    padding: 8px 16px;
-    border-radius: 30px;
-    border: 1px solid var(--border);
-    background: var(--bg-secondary);
+    padding: 8px 18px;
+    background: rgba(30,41,59,0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 40px;
     color: var(--text-secondary);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -261,37 +262,37 @@ body {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
 }
 
-/* -------------------- MAHSULOTLAR KARTALARI -------------------- */
-.products-container {
-    min-height: 400px;
-}
+/* -------------------- MAHSULOTLAR KARTALARI (GLASS) -------------------- */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 16px;
 }
 .product-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    background: rgba(30,41,59,0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
 }
-.product-card:active {
-    transform: scale(0.97);
-    border-color: var(--accent);
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(59,130,246,0.5);
 }
 .product-image {
     width: 100%;
     aspect-ratio: 1;
-    background: var(--bg-input);
+    background: rgba(15,23,42,0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48px;
+    font-size: 52px;
 }
 .product-image img {
     width: 100%;
@@ -299,19 +300,20 @@ body {
     object-fit: cover;
 }
 .product-info {
-    padding: 12px;
+    padding: 14px;
 }
 .product-category {
     font-size: 10px;
-    color: #93c5fd;
+    font-weight: 600;
     text-transform: uppercase;
+    color: #93c5fd;
     letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .product-name {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -319,159 +321,129 @@ body {
     overflow: hidden;
 }
 .product-desc {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 .product-price {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
     color: #34d399;
 }
 .product-contact {
     font-size: 11px;
     color: var(--text-tertiary);
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 /* -------------------- FORMA (E'LON QO'SHISH) -------------------- */
-.form-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
+.form-card, .info-card, .info-section, .profile-card {
+    background: rgba(30,41,59,0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
     padding: 20px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 .form-title {
+    font-size: 20px;
+    font-weight: 700;
     margin-bottom: 20px;
-    font-size: 18px;
-    color: #60a5fa;
+    color: var(--accent);
 }
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 .form-group label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 .form-input {
     width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.6);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
+    padding: 12px 16px;
     color: var(--text-primary);
     font-size: 14px;
     outline: none;
+    transition: all 0.2s;
 }
 .form-input:focus {
     border-color: var(--accent);
-}
-textarea.form-input {
-    resize: vertical;
-    font-family: inherit;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
 }
 .submit-btn {
     width: 100%;
     padding: 14px;
-    background: var(--accent);
-    color: white;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     border: none;
-    border-radius: var(--radius-sm);
-    font-size: 15px;
-    font-weight: 600;
+    border-radius: 40px;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
 }
 .submit-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
-.submit-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* -------------------- INFO KARTA -------------------- */
 .info-card {
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: var(--radius);
-    padding: 16px;
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: center;
 }
 .info-icon {
-    font-size: 32px;
+    font-size: 36px;
 }
 .info-text {
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: 13px;
     line-height: 1.4;
+    color: var(--text-secondary);
 }
 .info-text strong {
-    color: #60a5fa;
+    color: var(--accent);
 }
 
-/* -------------------- PROFIL KARTASI -------------------- */
+/* -------------------- PROFIL QISMI -------------------- */
 .profile-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    padding: 24px;
     text-align: center;
-    margin-bottom: 16px;
 }
 .profile-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 90px;
+    height: 90px;
     margin: 0 auto 16px;
-    font-size: 36px;
-    font-weight: 700;
+    font-size: 42px;
 }
 .profile-name {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 22px;
+    font-weight: 800;
 }
 .profile-username {
+    font-size: 14px;
     color: var(--text-secondary);
-    font-size: 13px;
     margin-bottom: 12px;
 }
 .security-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: rgba(59,130,246,0.2);
-    border: 1px solid rgba(59,130,246,0.4);
-    border-radius: 30px;
-    padding: 6px 14px;
-    font-size: 11px;
-    color: #93c5fd;
-}
-
-/* -------------------- MA'LUMOT BO'LIMLARI -------------------- */
-.info-section {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 6px 16px;
+    border-radius: 40px;
+    font-size: 12px;
 }
 .info-title {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -479,39 +451,37 @@ textarea.form-input {
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--glass-border);
 }
 .info-row:last-child {
     border-bottom: none;
 }
 .info-label {
     color: var(--text-secondary);
-    font-size: 13px;
 }
 .info-value {
     font-weight: 500;
-    font-size: 13px;
 }
 
 /* -------------------- MENGING E'LONLARIM -------------------- */
 .my-product-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     padding: 12px;
-    background: var(--bg-input);
+    background: rgba(15,23,42,0.5);
     border-radius: var(--radius-sm);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 .my-product-icon {
-    font-size: 32px;
+    font-size: 34px;
 }
 .my-product-info {
     flex: 1;
 }
 .my-product-name {
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 4px;
 }
 .my-product-price {
@@ -522,7 +492,7 @@ textarea.form-input {
     background: none;
     border: none;
     color: #f87171;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
     padding: 8px;
 }
@@ -531,12 +501,12 @@ textarea.form-input {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 190px);
 }
 .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 8px 4px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -553,18 +523,20 @@ textarea.form-input {
     align-self: flex-start;
 }
 .message-bubble {
-    padding: 10px 14px;
-    border-radius: 18px;
+    padding: 12px 16px;
+    border-radius: 22px;
     font-size: 14px;
+    background: rgba(30,41,59,0.7);
+    backdrop-filter: blur(4px);
 }
 .message.sent .message-bubble {
-    background: #3b82f6;
+    background: var(--accent);
     color: white;
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 6px;
 }
 .message.received .message-bubble {
-    background: var(--bg-card);
-    border-bottom-left-radius: 4px;
+    background: rgba(51,65,85,0.8);
+    border-bottom-left-radius: 6px;
 }
 .message-sender {
     font-size: 11px;
@@ -578,33 +550,36 @@ textarea.form-input {
 }
 .chat-input-area {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     padding: 12px;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
+    margin-top: 8px;
 }
 .chat-input {
     flex: 1;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 12px 16px;
+    background: rgba(15,23,42,0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 40px;
+    padding: 12px 18px;
     color: var(--text-primary);
     font-size: 14px;
     outline: none;
 }
 .send-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--accent);
     border: none;
     color: white;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
+    transition: 0.2s;
+}
+.send-btn:active {
+    transform: scale(0.94);
 }
 
-/* -------------------- MODAL (MAHSULOT TAFSILOTLARI) -------------------- */
+/* -------------------- MODAL -------------------- */
 .modal {
     display: none;
     position: fixed;
@@ -612,35 +587,36 @@ textarea.form-input {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.8);
     z-index: 200;
     align-items: center;
     justify-content: center;
 }
 .modal-content {
-    background: var(--bg-secondary);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
     max-width: 500px;
     width: 90%;
-    border-radius: 24px;
-    max-height: 80vh;
+    border-radius: 32px;
+    max-height: 85vh;
     overflow-y: auto;
     animation: slideUp 0.3s ease;
 }
 @keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
+    from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 .modal-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 18px;
+    border-bottom: 1px solid var(--glass-border);
 }
 .modal-close {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 28px;
     color: var(--text-secondary);
     cursor: pointer;
 }
@@ -648,87 +624,68 @@ textarea.form-input {
     padding: 20px;
 }
 
-/* -------------------- YUKLASH HOLATLARI -------------------- */
-.loading-state {
+/* -------------------- YUKLASH VA BO'SH HOLATLAR -------------------- */
+.loading-state, .empty-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 50px 20px;
 }
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--bg-input);
-    border-top-color: var(--accent);
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(59,130,246,0.2);
+    border-top-color: #3b82f6;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-}
-.loading-state-small {
-    text-align: center;
-    padding: 20px;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 18px;
 }
 .loading-spinner-small {
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--bg-input);
-    border-top-color: var(--accent);
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(59,130,246,0.2);
+    border-top-color: #3b82f6;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.7s linear infinite;
     margin: 0 auto 12px;
 }
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-secondary);
-}
 .empty-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    opacity: 0.5;
+    font-size: 56px;
+    margin-bottom: 16px;
+    opacity: 0.6;
 }
 
 /* -------------------- TOAST XABARLAR -------------------- */
 .toast-container {
     position: fixed;
-    top: 70px;
-    left: 16px;
-    right: 16px;
+    top: 80px;
+    left: 20px;
+    right: 20px;
     z-index: 300;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     pointer-events: none;
 }
 .toast {
-    background: var(--bg-card);
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
     border-left: 4px solid var(--accent);
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 14px 18px;
+    border-radius: 16px;
     font-size: 14px;
+    font-weight: 500;
     animation: slideInToast 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     pointer-events: auto;
 }
 @keyframes slideInToast {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
-.toast-success {
-    border-left-color: #10b981;
-}
-.toast-error {
-    border-left-color: #ef4444;
-}
-.toast-warning {
-    border-left-color: #f59e0b;
-}
+.toast-success { border-left-color: #10b981; }
+.toast-error { border-left-color: #ef4444; }
+.toast-warning { border-left-color: #f59e0b; }
 
 /* -------------------- RESPONSIVE -------------------- */
-@media (min-width: 768px) {
-    .app-container {
-        max-width: 600px;
-        margin: 0 auto;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
+@media (min-width: 640px) {
     .product-grid {
         grid-template-columns: repeat(2, 1fr);
     }
