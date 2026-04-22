@@ -58,23 +58,28 @@ function showToast(msg, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// BARCHA MA'LUMOTLARNI YUKLASH (Products + Chat)
+// BARCHA MA'LUMOTLARNI YUKLASH
 async function loadData() {
     try {
-        // DIQQAT: API_URL oxiriga keshni tozalovchi t= param qo'shildi
         const url = `${API_URL}?action=getAllData&t=${new Date().getTime()}`;
         const res = await fetch(url);
-        const data = await res.json();
         
-        if (data.success) {
-            allProducts = data.products || [];
-            chatMessages = data.messages || [];
-            renderProducts();
-            renderMyProducts();
-            renderChat();
+        // Agar Google HTML (login page) qaytarsa, xatoni ushlash uchun
+        const text = await res.text();
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                allProducts = data.products || [];
+                chatMessages = data.messages || [];
+                renderProducts();
+                renderMyProducts();
+                renderChat();
+            }
+        } catch (parseError) {
+            console.log("Serverdan JSON o'rniga boshqa narsa keldi. URL yoki Deploy sozlamalarini tekshiring.");
         }
     } catch (err) {
-        console.error("Ma'lumot yuklashda xatolik: ", err);
+        console.log("Orqa fonda yangilanish xatosi:", err);
     }
 }
 
