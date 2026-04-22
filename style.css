@@ -30,6 +30,15 @@ header p {
     color: #5a6874;
 }
 
+.connection-status {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    display: inline-block;
+    border-radius: 20px;
+    background: #eef2f7;
+}
+
 .controls {
     display: flex;
     gap: 12px;
@@ -179,6 +188,13 @@ header p {
 
 .submit-btn:hover {
     background: #1f4564;
+}
+
+.info-note {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: #e67e22;
+    text-align: center;
 }
 
 .loading {
