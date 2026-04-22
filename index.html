@@ -2,46 +2,182 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>OleX Market | Savdo platformasi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>OleX Market | Xavfsiz Savdo Platformasi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>🛍️ OleX Market</h1>
-            <p>Xarid va sotuvning ishonchli platformasi</p>
-            <div class="connection-status" id="connStatus">🟡 Ulanish tekshirilmoqda...</div>
-        </header>
+    <!-- Yuklanish animatsiyasi -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">🛍️</div>
+        <div class="splash-title">OleX Market</div>
+        <div class="splash-spinner"></div>
+        <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
+    </div>
 
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="🔍 Mahsulot nomi yoki tavsif..." class="search-input">
-            <select id="categoryFilter" class="category-select">
-                <option value="all">📂 Barcha toifalar</option>
-                <option value="elektronika">📱 Elektronika</option>
-                <option value="kiyim-kechak">👕 Kiyim-kechak</option>
-                <option value="uy-joy">🏠 Uy-joy</option>
-                <option value="transport">🚗 Transport</option>
-                <option value="boshqa">📦 Boshqa</option>
-            </select>
-            <button id="refreshBtn" class="refresh-btn">🔄 Yangilash</button>
+    <!-- Asosiy ilova -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-logo">
+                <span class="logo-icon">🛍️</span>
+                <span class="logo-text">OleX Market</span>
+            </div>
+            <div class="header-user" id="userMenuBtn">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-info">
+                    <span class="user-name" id="userName">Yuklanmoqda...</span>
+                    <span class="user-status">🔒 Xavfsiz ulangan</span>
+                </div>
+            </div>
         </div>
 
-        <div id="productsList" class="products-grid">
-            <div class="loading">⏳ Yuklanmoqda...</div>
+        <!-- Tab navigatsiya -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="home">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Bosh sahifa</span>
+            </button>
+            <button class="tab-btn" data-tab="add">
+                <span class="tab-icon">➕</span>
+                <span class="tab-label">E'lon berish</span>
+            </button>
+            <button class="tab-btn" data-tab="profile">
+                <span class="tab-icon">👤</span>
+                <span class="tab-label">Mening profilim</span>
+            </button>
         </div>
 
-        <div class="add-product-form">
-            <h3>➕ Yangi e'lon qo'shish</h3>
-            <p class="info-note">
-                📝 E'lon qo'shish uchun quyidagi Google Formni to'ldiring:<br>
-                <a href="https://forms.google.com/your-form-link" target="_blank">➡️ Yangi e'lon qo'shish formasi</a>
-            </p>
-            <hr style="margin: 15px 0; border-color: #dce1e8;">
-            <p class="info-note" style="color: #666;">
-                💡 Yangi mahsulotlar avtomatik ravishda ro'yxatga qo'shiladi.
-            </p>
+        <!-- HOME TAB -->
+        <div class="tab-content active" id="homeTab">
+            <div class="search-section">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Mahsulot qidirish...">
+                </div>
+                <div class="categories" id="categories">
+                    <button class="cat-btn active" data-cat="all">🏠 Barchasi</button>
+                    <button class="cat-btn" data-cat="elektronika">📱 Elektronika</button>
+                    <button class="cat-btn" data-cat="kiyim-kechak">👕 Kiyim-kechak</button>
+                    <button class="cat-btn" data-cat="uy-joy">🏠 Uy-joy</button>
+                    <button class="cat-btn" data-cat="transport">🚗 Transport</button>
+                    <button class="cat-btn" data-cat="boshqa">📦 Boshqa</button>
+                </div>
+            </div>
+            <div class="products-container" id="productsContainer">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Mahsulotlar yuklanmoqda...</p>
+                </div>
+            </div>
         </div>
+
+        <!-- ADD PRODUCT TAB -->
+        <div class="tab-content" id="addTab">
+            <div class="form-card">
+                <h3 class="form-title">➕ Yangi e'lon berish</h3>
+                <div class="form-group">
+                    <label>📁 Kategoriya</label>
+                    <select id="productCategory" class="form-input">
+                        <option value="elektronika">📱 Elektronika</option>
+                        <option value="kiyim-kechak">👕 Kiyim-kechak</option>
+                        <option value="uy-joy">🏠 Uy-joy</option>
+                        <option value="transport">🚗 Transport</option>
+                        <option value="boshqa">📦 Boshqa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 Mahsulot nomi</label>
+                    <input type="text" id="productName" class="form-input" placeholder="Masalan: iPhone 15 Pro">
+                </div>
+                <div class="form-group">
+                    <label>💰 Narxi (so'm)</label>
+                    <input type="number" id="productPrice" class="form-input" placeholder="15000000">
+                </div>
+                <div class="form-group">
+                    <label>📖 Tavsif</label>
+                    <textarea id="productDesc" class="form-input" rows="3" placeholder="Mahsulot haqida batafsil ma'lumot..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>📞 Aloqa uchun telefon</label>
+                    <input type="tel" id="productContact" class="form-input" placeholder="+998 90 123 45 67">
+                </div>
+                <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
+            </div>
+            
+            <div class="info-card">
+                <div class="info-icon">🔒</div>
+                <div class="info-text">
+                    <strong>Xavfsizlik kafolati</strong><br>
+                    Barcha e'lonlar sizning Telegram profilingiz bilan bog'lanadi. Faqat siz o'z e'lonlaringizni tahrirlay olasiz.
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div class="tab-content" id="profileTab">
+            <div class="profile-card">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <h2 class="profile-name" id="profileName">Yuklanmoqda...</h2>
+                <div class="profile-username" id="profileUsername">@username</div>
+                <div class="security-badge">
+                    <span>🔒</span>
+                    <span>Telegram orqali xavfsiz ulangan</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">
+                    <span>📋</span>
+                    <span>Shaxsiy ma'lumotlar</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Telegram ID</span>
+                    <span class="info-value" id="tgId">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Foydalanuvchi nomi</span>
+                    <span class="info-value" id="tgUsername">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ulangan sana</span>
+                    <span class="info-value" id="loginDate">-</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">
+                    <span>📞</span>
+                    <span>Kontakt ma'lumotlar</span>
+                </div>
+                <div class="form-group">
+                    <label>To'liq ism</label>
+                    <input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz">
+                </div>
+                <div class="form-group">
+                    <label>Telefon raqam</label>
+                    <input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67">
+                </div>
+                <button id="saveProfileBtn" class="submit-btn">💾 Ma'lumotlarni saqlash</button>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">
+                    <span>📦</span>
+                    <span>Mening e'lonlarim</span>
+                </div>
+                <div id="myProductsList">
+                    <div class="loading-state-small">
+                        <div class="loading-spinner-small"></div>
+                        <p>Yuklanmoqda...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast xabarlar uchun -->
+        <div id="toastContainer" class="toast-container"></div>
     </div>
 
     <script src="script.js"></script>
