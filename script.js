@@ -1,236 +1,218 @@
 // ============================================
-// OLEX MARKET - Google Sheets orqali
+// OLEX MARKET - XAVFSIZ TELEGRAM WEB APP
 // ============================================
 
-// SIZNING GOOGLE SHEET ID INGIZ
-const SHEET_ID = '17kp71tr4Ac0fY-pW-r_zwj0gXoeQ8Ax_ZHXoFrN-at4';
+// Telegram WebApp
+const tg = window.Telegram.WebApp;
 
-// Google Sheets ni JSON formatida olish URL i
-// Buning uchun sheetni "Anyone with link can view" qilib sozlang!
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+// Global variables
+let currentUser = null;
+let allProducts = [];
+let myProducts = [];
+let currentFilter = 'all';
+let searchQuery = '';
 
-let products = [];
-let isLoading = false;
+// Session storage kaliti
+const SESSION_KEY = 'olex_session';
 
 // ============================================
-// MAHSULOTLARNI GOOGLE SHEETS DAN O'QISH
+// XAVFSIZLIK: Foydalanuvchi autentifikatsiyasi
 // ============================================
-async function loadProducts() {
-    if (isLoading) return;
-    isLoading = true;
-    
-    const statusDiv = document.getElementById('connStatus');
-    const container = document.getElementById('productsList');
+function initTelegramAuth() {
+    try {
+        tg.ready();
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        const user = tg.initDataUnsafe?.user;
+        
+        if (!user || !user.id) {
+            throw new Error('Telegram foydalanuvchisi topilmadi');
+        }
+        
+        // Xavfsiz session ID yaratish
+        const sessionId = btoa(`${user.id}_${Date.now()}_${Math.random()}`);
+        
+        currentUser = {
+            id: String(user.id),
+            firstName: user.first_name || '',
+            lastName: user.last_name || '',
+            username: user.username || '',
+            languageCode: user.language_code || 'uz',
+            photoUrl: user.photo_url || '',
+            sessionId: sessionId,
+            loginTime: new Date().toISOString(),
+            displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`
+        };
+        
+        // Session ni localStorage ga saqlash
+        const session = {
+            userId: currentUser.id,
+            sessionId: sessionId,
+            loginTime: currentUser.loginTime,
+            userData: currentUser
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        
+        return true;
+    } catch (error) {
+        console.error('Auth xatosi:', error);
+        showToast('❌ Autentifikatsiya xatosi! Iltimos, Telegram orqali qaytadan urining.', 'error');
+        return false;
+    }
+}
+
+// ============================================
+// SESSION TEKSHIRISH (boshqa user kirmasligi uchun)
+// ============================================
+function verifySession() {
+    const savedSession = localStorage.getItem(SESSION_KEY);
+    if (!savedSession) return false;
     
     try {
-        statusDiv.innerHTML = '🟡 Google Sheets ga ulanish...';
-        statusDiv.style.background = '#fff3cd';
-        statusDiv.style.color = '#856404';
-        
-        // Google Sheets dan ma'lumot olish
-        const response = await fetch(SHEET_URL);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const text = await response.text();
-        
-        // JSON formatini tozalash
-        let jsonStr = text;
-        jsonStr = jsonStr.replace("/*O_o*/", "");
-        jsonStr = jsonStr.replace("google.visualization.Query.setResponse(", "");
-        jsonStr = jsonStr.slice(0, -2);
-        
-        const data = JSON.parse(jsonStr);
-        
-        // Ma'lumotlarni parse qilish
-        const rows = data.table.rows;
-        const cols = data.table.cols;
-        
-        products = [];
-        
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i].c;
-            
-            if (row && row[0] && row[0].v) {
-                const product = {
-                    id: i,
-                    name: row[0] ? row[0].v : '',
-                    description: row[1] ? row[1].v : '',
-                    price: row[2] ? parseFloat(row[2].v) : 0,
-                    category: row[3] ? String(row[3].v).toLowerCase() : 'boshqa',
-                    contact: row[4] ? row[4].v : '',
-                    date_added: row[5] ? row[5].v : '',
-                    status: row[6] ? row[6].v : 'active'
-                };
-                
-                if (product.name && product.status !== 'deleted') {
-                    products.push(product);
-                }
-            }
-        }
-        
-        if (products.length > 0) {
-            statusDiv.innerHTML = `✅ ${products.length} ta mahsulot yuklandi`;
-            statusDiv.style.background = '#d4edda';
-            statusDiv.style.color = '#155724';
-            renderProducts(products);
+        const session = JSON.parse(savedSession);
+        // Faqat shu Telegram user sessioni ishlaydi
+        return session.userId === currentUser?.id;
+    } catch {
+        return false;
+    }
+}
+
+// ============================================
+// MAHSULOTLARNI YUKLASH
+// ============================================
+async function loadProducts() {
+    const container = document.getElementById('productsContainer');
+    
+    try {
+        // Mahsulotlarni localStorage dan o'qish
+        const stored = localStorage.getItem('olex_products');
+        if (stored) {
+            allProducts = JSON.parse(stored);
         } else {
-            statusDiv.innerHTML = `⚠️ Ma'lumot topilmadi. Iltimos, Google Sheet ni to'ldiring.`;
-            statusDiv.style.background = '#fff3cd';
-            statusDiv.style.color = '#856404';
-            container.innerHTML = `
-                <div class="loading">
-                    📭 Hozircha mahsulotlar yo'q<br>
-                    <small>Birinchi e'loni qo'shing!</small>
-                </div>
-            `;
+            // Namuna mahsulotlar
+            allProducts = [
+                {
+                    id: '1',
+                    userId: 'system',
+                    name: 'iPhone 15 Pro Max',
+                    description: '256GB, Dark Blue, Ideal holat',
+                    price: 14500000,
+                    category: 'elektronika',
+                    contact: '+998901234567',
+                    date: new Date().toISOString(),
+                    status: 'active'
+                },
+                {
+                    id: '2',
+                    userId: 'system',
+                    name: 'Chevrolet Nexia 3',
+                    description: '2022 yil, 45000 km yurgan',
+                    price: 120000000,
+                    category: 'transport',
+                    contact: '+998901234568',
+                    date: new Date().toISOString(),
+                    status: 'active'
+                },
+                {
+                    id: '3',
+                    userId: 'system',
+                    name: '2 xonali kvartira',
+                    description: 'Chilonzor, 52 kv.m, ta\'mirlangan',
+                    price: 350000000,
+                    category: 'uy-joy',
+                    contact: '+998901234569',
+                    date: new Date().toISOString(),
+                    status: 'active'
+                }
+            ];
+            localStorage.setItem('olex_products', JSON.stringify(allProducts));
         }
+        
+        // Faqat active mahsulotlarni ko'rsatish
+        const activeProducts = allProducts.filter(p => p.status !== 'deleted');
+        renderProducts(activeProducts);
         
     } catch (error) {
-        console.error('Xatolik:', error);
-        statusDiv.innerHTML = `❌ Ulanish xatosi: ${error.message}`;
-        statusDiv.style.background = '#f8d7da';
-        statusDiv.style.color = '#721c24';
-        container.innerHTML = `
-            <div class="loading">
-                ❌ Google Sheets ga ulanishda xatolik<br>
-                <small>${error.message}</small><br><br>
-                <strong>⚠️ Yechim:</strong><br>
-                1. Google Sheet faylini oching<br>
-                2. "Share" tugmasini bosing<br>
-                3. "General access" → "Anyone with the link"<br>
-                4. "Viewer" holatiga qo'ying<br>
-                5. Quyidagi formatda ma'lumot qo'shing:<br><br>
-                <table style="margin:0 auto; font-size:12px; border-collapse:collapse;">
-                    <tr style="background:#2c5f8a;color:white;">
-                        <th style="padding:5px;">A</th><th style="padding:5px;">B</th><th style="padding:5px;">C</th>
-                        <th style="padding:5px;">D</th><th style="padding:5px;">E</th><th style="padding:5px;">F</th>
-                    </tr>
-                    <tr><td style="padding:5px;">name</td><td>description</td><td>price</td>
-                    <td>category</td><td>contact</td><td>date</td></tr>
-                </table>
-                <br>
-                <button onclick="location.reload()" style="padding:8px 20px;margin-top:10px;cursor:pointer;">🔄 Qayta urinish</button>
-            </div>
-        `;
-    } finally {
-        isLoading = false;
+        console.error('Yuklash xatosi:', error);
+        showToast('❌ Mahsulotlarni yuklashda xatolik', 'error');
     }
 }
 
 // ============================================
 // MAHSULOTLARNI KO'RSATISH
 // ============================================
-function renderProducts(items) {
-    const container = document.getElementById('productsList');
+function renderProducts(products) {
+    const container = document.getElementById('productsContainer');
     
-    if (!items || items.length === 0) {
-        container.innerHTML = `<div class="loading">📭 Hech qanday mahsulot topilmadi</div>`;
+    let filtered = [...products];
+    
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(p => p.category === currentFilter);
+    }
+    
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(query) || 
+            p.description.toLowerCase().includes(query)
+        );
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>Mahsulot topilmadi</p>
+                <p style="font-size: 12px; margin-top: 8px;">Boshqa kategoriya yoki kalit so'z bilan qidirib ko'ring</p>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = items.map(product => `
-        <div class="product-card" onclick="showProductDetail('${product.id}')">
-            <div class="product-image">${getCategoryIcon(product.category)}</div>
-            <div class="product-info">
-                <div class="product-category">${escapeHtml(product.category)}</div>
-                <div class="product-name">${escapeHtml(product.name)}</div>
-                <div class="product-desc">${escapeHtml(product.description)}</div>
-                <div class="product-price">${formatPrice(product.price)} so'm</div>
-                <div class="product-contact">📞 ${escapeHtml(product.contact)}</div>
-            </div>
+    container.innerHTML = `
+        <div class="product-grid">
+            ${filtered.map(product => `
+                <div class="product-card" onclick="showProductDetail('${product.id}')">
+                    <div class="product-image">${getCategoryIcon(product.category)}</div>
+                    <div class="product-info">
+                        <div class="product-category">${escapeHtml(product.category)}</div>
+                        <div class="product-name">${escapeHtml(product.name)}</div>
+                        <div class="product-desc">${escapeHtml(product.description)}</div>
+                        <div class="product-price">${formatPrice(product.price)} so'm</div>
+                        <div class="product-contact">📞 ${escapeHtml(product.contact)}</div>
+                    </div>
+                </div>
+            `).join('')}
         </div>
-    `).join('');
+    `;
 }
 
 // ============================================
 // MAHSULOT DETAIL
 // ============================================
 function showProductDetail(productId) {
-    const product = products.find(p => p.id == productId);
+    const product = allProducts.find(p => p.id === productId);
     if (!product) return;
+    
+    const isOwner = currentUser && product.userId === currentUser.id;
     
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="modal-close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-            <div style="text-align:center;font-size:64px;margin-bottom:16px;">${getCategoryIcon(product.category)}</div>
-            <h2 style="margin-bottom:8px;">${escapeHtml(product.name)}</h2>
-            <div style="color:#2c5f8a;font-weight:bold;margin-bottom:12px;">${formatPrice(product.price)} so'm</div>
-            <div style="margin-bottom:12px;"><strong>📖 Tavsif:</strong><br>${escapeHtml(product.description)}</div>
-            <div style="margin-bottom:12px;"><strong>📞 Aloqa:</strong> ${escapeHtml(product.contact)}</div>
-            <div style="margin-bottom:12px;"><strong>📅 Sana:</strong> ${product.date_added || 'Nomaʼlum'}</div>
-            <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:#2c5f8a;color:white;border:none;border-radius:40px;margin-top:16px;cursor:pointer;">
-                📞 Bog'lanish
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) modal.remove();
-    };
-}
-
-// ============================================
-// FILTER VA QIDIRUV
-// ============================================
-function filterProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
-    
-    let filtered = [...products];
-    
-    if (category !== 'all') {
-        filtered = filtered.filter(p => p.category === category);
-    }
-    
-    if (searchTerm) {
-        filtered = filtered.filter(p =>
-            p.name.toLowerCase().includes(searchTerm) ||
-            p.description.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    renderProducts(filtered);
-}
-
-// ============================================
-// YORDAMCHI FUNKSIYALAR
-// ============================================
-function getCategoryIcon(category) {
-    const icons = {
-        'elektronika': '📱',
-        'kiyim-kechak': '👕',
-        'uy-joy': '🏠',
-        'transport': '🚗',
-        'boshqa': '📦'
-    };
-    return icons[category] || '📦';
-}
-
-function formatPrice(price) {
-    return new Intl.NumberFormat('uz-UZ').format(price);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ============================================
-// EVENT LISTENERLAR
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadProducts();
-    
-    document.getElementById('refreshBtn').addEventListener('click', loadProducts);
-    document.getElementById('searchInput').addEventListener('input', filterProducts);
-    document.getElementById('categoryFilter').addEventListener('change', filterProducts);
-});
+            <div class="modal-header">
+                <h3>${escapeHtml(product.name)}</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center;font-size:64px;margin-bottom:16px;">${getCategoryIcon(product.category)}</div>
+                <div class="info-row"><span class="info-label">📌 Kategoriya</span><span class="info-value">${escapeHtml(product.category)}</span></div>
+                <div class="info-row"><span class="info-label">💰 Narxi</span><span class="info-value" style="color:var(--success);font-weight:bold;">${formatPrice(product.price)} so'm</span></div>
+                <div class="info-row"><span class="info-label">📖 Tavsif</span><span class="info-value">${escapeHtml(product.description)}</span></div>
+                <div class="info-row"><span class="info-label">📞 Aloqa</span><span class="info-value">${escapeHtml(product.contact)}</span></div>
+                <div class="info-row"><span class="info-label">📅 Sana</span><span class="info-value">${new Date(product.date).toLocaleDateString('uz-UZ')}</span></div>
+                ${!isOwner ? `
+                    <button onclick="window.location.href='tel:${product.contact.replace(/[^0-9+]/g, '')}'" style="width:100%;padding:12px;background:var(--success);color:white;border:none;border-radius:12px;margin-top:16px;cursor:pointer;">
+                        📞 Bog'l
