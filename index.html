@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>OleX Market | Savdo platformasi</title>
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Stil fayli -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Splash Screen -->
+    <!-- Yuklanish ekrani -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">🛍️</div>
         <div class="splash-title">OleX Market</div>
@@ -16,9 +18,9 @@
         <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
     </div>
 
-    <!-- Asosiy ilova -->
+    <!-- Asosiy ilova konteyneri -->
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- Header -->
+        <!-- Sarlavha (header) -->
         <div class="header">
             <div class="header-logo">
                 <span class="logo-icon">🛍️</span>
@@ -33,7 +35,7 @@
             </div>
         </div>
 
-        <!-- Tabs -->
+        <!-- Navigatsiya tablari -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
             <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
@@ -41,7 +43,7 @@
             <button class="tab-btn" data-tab="chat">💬 Chat</button>
         </div>
 
-        <!-- HOME TAB -->
+        <!-- Bosh sahifa (mahsulotlar) -->
         <div class="tab-content active" id="homeTab">
             <div class="search-section">
                 <div class="search-box">
@@ -65,7 +67,7 @@
             </div>
         </div>
 
-        <!-- ADD PRODUCT TAB -->
+        <!-- E'lon berish sahifasi -->
         <div class="tab-content" id="addTab">
             <div class="form-card">
                 <h3 class="form-title">➕ Yangi e'lon berish</h3>
@@ -101,7 +103,6 @@
                 </div>
                 <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
             </div>
-            
             <div class="info-card">
                 <div class="info-icon">🔒</div>
                 <div class="info-text">
@@ -112,7 +113,7 @@
             </div>
         </div>
 
-        <!-- PROFILE TAB -->
+        <!-- Profil sahifasi -->
         <div class="tab-content" id="profileTab">
             <div class="profile-card">
                 <div class="profile-avatar" id="profileAvatar">👤</div>
@@ -146,7 +147,7 @@
             </div>
         </div>
 
-        <!-- CHAT TAB -->
+        <!-- Chat sahifasi -->
         <div class="tab-content" id="chatTab">
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
@@ -159,9 +160,11 @@
             </div>
         </div>
 
+        <!-- Bildirishnoma konteyneri -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
+    <!-- JavaScript fayli -->
     <script src="script.js"></script>
 </body>
 </html>
