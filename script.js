@@ -1,14 +1,19 @@
 // ============================================
-// OLEX MARKET - Frontend JavaScript
+// OLEX MARKET - Google Sheets orqali
 // ============================================
 
-const API_URL = 'http://localhost:5000';
+// SIZNING GOOGLE SHEET ID INGIZ
+const SHEET_ID = '17kp71tr4Ac0fY-pW-r_zwj0gXoeQ8Ax_ZHXoFrN-at4';
+
+// Google Sheets ni JSON formatida olish URL i
+// Buning uchun sheetni "Anyone with link can view" qilib sozlang!
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
 let products = [];
 let isLoading = false;
 
 // ============================================
-// MAHSULOTLARNI YUKLASH
+// MAHSULOTLARNI GOOGLE SHEETS DAN O'QISH
 // ============================================
 async function loadProducts() {
     if (isLoading) return;
@@ -18,26 +23,69 @@ async function loadProducts() {
     const container = document.getElementById('productsList');
     
     try {
-        statusDiv.innerHTML = '🟡 Maʼlumotlar yuklanmoqda...';
+        statusDiv.innerHTML = '🟡 Google Sheets ga ulanish...';
         statusDiv.style.background = '#fff3cd';
         statusDiv.style.color = '#856404';
         
-        const response = await fetch(`${API_URL}/get_products`);
+        // Google Sheets dan ma'lumot olish
+        const response = await fetch(SHEET_URL);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = await response.json();
+        const text = await response.text();
         
-        if (data.success) {
-            products = data.products || [];
+        // JSON formatini tozalash
+        let jsonStr = text;
+        jsonStr = jsonStr.replace("/*O_o*/", "");
+        jsonStr = jsonStr.replace("google.visualization.Query.setResponse(", "");
+        jsonStr = jsonStr.slice(0, -2);
+        
+        const data = JSON.parse(jsonStr);
+        
+        // Ma'lumotlarni parse qilish
+        const rows = data.table.rows;
+        const cols = data.table.cols;
+        
+        products = [];
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i].c;
+            
+            if (row && row[0] && row[0].v) {
+                const product = {
+                    id: i,
+                    name: row[0] ? row[0].v : '',
+                    description: row[1] ? row[1].v : '',
+                    price: row[2] ? parseFloat(row[2].v) : 0,
+                    category: row[3] ? String(row[3].v).toLowerCase() : 'boshqa',
+                    contact: row[4] ? row[4].v : '',
+                    date_added: row[5] ? row[5].v : '',
+                    status: row[6] ? row[6].v : 'active'
+                };
+                
+                if (product.name && product.status !== 'deleted') {
+                    products.push(product);
+                }
+            }
+        }
+        
+        if (products.length > 0) {
             statusDiv.innerHTML = `✅ ${products.length} ta mahsulot yuklandi`;
             statusDiv.style.background = '#d4edda';
             statusDiv.style.color = '#155724';
             renderProducts(products);
         } else {
-            throw new Error(data.error || 'Maʼlumot olishda xatolik');
+            statusDiv.innerHTML = `⚠️ Ma'lumot topilmadi. Iltimos, Google Sheet ni to'ldiring.`;
+            statusDiv.style.background = '#fff3cd';
+            statusDiv.style.color = '#856404';
+            container.innerHTML = `
+                <div class="loading">
+                    📭 Hozircha mahsulotlar yo'q<br>
+                    <small>Birinchi e'loni qo'shing!</small>
+                </div>
+            `;
         }
         
     } catch (error) {
@@ -47,8 +95,23 @@ async function loadProducts() {
         statusDiv.style.color = '#721c24';
         container.innerHTML = `
             <div class="loading">
-                ❌ Serverga ulanishda xatolik<br>
+                ❌ Google Sheets ga ulanishda xatolik<br>
                 <small>${error.message}</small><br><br>
+                <strong>⚠️ Yechim:</strong><br>
+                1. Google Sheet faylini oching<br>
+                2. "Share" tugmasini bosing<br>
+                3. "General access" → "Anyone with the link"<br>
+                4. "Viewer" holatiga qo'ying<br>
+                5. Quyidagi formatda ma'lumot qo'shing:<br><br>
+                <table style="margin:0 auto; font-size:12px; border-collapse:collapse;">
+                    <tr style="background:#2c5f8a;color:white;">
+                        <th style="padding:5px;">A</th><th style="padding:5px;">B</th><th style="padding:5px;">C</th>
+                        <th style="padding:5px;">D</th><th style="padding:5px;">E</th><th style="padding:5px;">F</th>
+                    </tr>
+                    <tr><td style="padding:5px;">name</td><td>description</td><td>price</td>
+                    <td>category</td><td>contact</td><td>date</td></tr>
+                </table>
+                <br>
                 <button onclick="location.reload()" style="padding:8px 20px;margin-top:10px;cursor:pointer;">🔄 Qayta urinish</button>
             </div>
         `;
@@ -114,58 +177,6 @@ function showProductDetail(productId) {
 }
 
 // ============================================
-// YANGI MAHSULOT QO'SHISH
-// ============================================
-async function addProduct() {
-    const name = document.getElementById('productName').value.trim();
-    const desc = document.getElementById('productDesc').value.trim();
-    const price = document.getElementById('productPrice').value;
-    const category = document.getElementById('productCategory').value;
-    const contact = document.getElementById('productContact').value.trim();
-    
-    if (!name || !desc || !price || !contact) {
-        alert('⚠️ Barcha maydonlarni to\'ldiring!');
-        return;
-    }
-    
-    const btn = document.getElementById('addProductBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Yuklanmoqda...';
-    
-    try {
-        const response = await fetch(`${API_URL}/add_product`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: name,
-                description: desc,
-                price: parseFloat(price),
-                category: category,
-                contact: contact
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            alert('✅ Mahsulot muvaffaqiyatli qo\'shildi!');
-            document.getElementById('productName').value = '';
-            document.getElementById('productDesc').value = '';
-            document.getElementById('productPrice').value = '';
-            document.getElementById('productContact').value = '';
-            loadProducts();
-        } else {
-            alert('❌ Xatolik: ' + data.error);
-        }
-    } catch (error) {
-        alert('❌ Server xatosi: ' + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "✅ E'lonni joylash";
-    }
-}
-
-// ============================================
 // FILTER VA QIDIRUV
 // ============================================
 function filterProducts() {
@@ -220,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     
     document.getElementById('refreshBtn').addEventListener('click', loadProducts);
-    document.getElementById('addProductBtn').addEventListener('click', addProduct);
     document.getElementById('searchInput').addEventListener('input', filterProducts);
     document.getElementById('categoryFilter').addEventListener('change', filterProducts);
 });
