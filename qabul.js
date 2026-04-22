@@ -1,76 +1,78 @@
 // =====================================================
-// qabul.js - OLEX MARKET FRONTEND (MA'LUMOT QABUL QILISH)
-// Vazifasi: Serverdan (Google Sheets, Docs, Drive) ma'lumotlarni
-// GET so'rovlar orqali olish va ularni UI da ko'rsatish.
+// qabul.js - OLEX MARKET (MA'LUMOT QABUL QILISH)
+// Telegram botga ulanmasdan ishlaydi (test rejimi)
 // =====================================================
 
-// -------------------- KONFIGURATSIYA --------------------
-const API_URL = 'https://script.google.com/macros/s/1lvX7SqYioAO5Y1sEmHtLGcE1taeo43oBXsk4mTunADwmfJgBKiw0hNE6/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxenE0AM6qvA3C8b_1uPMrncnj-hjUuBI2MB6ynNwWZ7P3IMHDnVolxYYXENnnuku8wAg/exec';
 
 // -------------------- GLOBAL O'ZGARUVCHILAR --------------------
-window.currentUser = null;      // Joriy foydalanuvchi ma'lumotlari
-window.allProducts = [];         // Barcha mahsulotlar ro'yxati
-window.chatMessages = [];        // Chat xabarlari ro'yxati
-window.currentFilter = 'all';    // Tanlangan kategoriya filtri
-window.searchQuery = '';         // Qidiruv so'rovi
+window.currentUser = null;
+window.allProducts = [];
+window.chatMessages = [];
+window.currentFilter = 'all';
+window.searchQuery = '';
 
 // -------------------- YORDAMCHI FUNKSIYALAR --------------------
-function showToast(message, type) { /* xuddi yubor.js dagi kabi */ }
-function escapeHtml(text) { /* xuddi yubor.js dagi kabi */ }
-function formatPrice(price) { /* xuddi yubor.js dagi kabi */ }
-function getCategoryIcon(category) { /* xuddi yubor.js dagi kabi */ }
-
-// -------------------- 1. TELEGRAM AUTHENTIFICATION --------------------
-/**
- * Telegram WebApp orqali foydalanuvchi ma'lumotlarini olish va UI ni yangilash
- */
-async function initTelegramAuth() {
-    try {
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        const user = tg.initDataUnsafe?.user;
-        
-        if (!user || !user.id) {
-            // Test rejimi (brauzerda ishlatish uchun)
-            window.currentUser = {
-                id: 'test_' + Date.now(),
-                firstName: 'Test',
-                lastName: 'User',
-                username: 'test_user',
-                displayName: 'Test User'
-            };
-        } else {
-            window.currentUser = {
-                id: String(user.id),
-                firstName: user.first_name || '',
-                lastName: user.last_name || '',
-                username: user.username || '',
-                displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || `User_${user.id}`
-            };
-        }
-        
-        updateUI();
-        
-        // Splash ekranini yashirish
-        setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            const app = document.getElementById('appContainer');
-            if (splash) splash.style.display = 'none';
-            if (app) app.style.display = 'block';
-        }, 1500);
-        
-        return true;
-    } catch (error) {
-        console.error('Auth xatosi:', error);
-        showToast('❌ Autentifikatsiya xatosi!', 'error');
-        return false;
-    }
+function showToast(message, type) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideInToast 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-/**
- * UI elementlarini joriy foydalanuvchi ma'lumotlariga mos ravishda yangilaydi
- */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('uz-UZ').format(price);
+}
+
+function getCategoryIcon(category) {
+    const icons = {
+        'elektronika': '📱',
+        'kiyim-kechak': '👕',
+        'uy-joy': '🏠',
+        'transport': '🚗',
+        'boshqa': '📦'
+    };
+    return icons[category] || '📦';
+}
+
+// -------------------- TELEGRAM AUTH (TEST REJIMI) --------------------
+async function initTelegramAuth() {
+    // Telegram WebApp mavjudligini tekshirish, lekin ishlatmaslik
+    // Test foydalanuvchi yaratish
+    window.currentUser = {
+        id: 'test_' + Date.now(),
+        firstName: 'Test',
+        lastName: 'User',
+        username: 'test_user',
+        displayName: 'Mehmon'
+    };
+    
+    updateUI();
+    
+    // Splash ekranini yashirish
+    setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        const app = document.getElementById('appContainer');
+        if (splash) splash.style.display = 'none';
+        if (app) app.style.display = 'block';
+    }, 1500);
+    
+    return true;
+}
+
 function updateUI() {
     const elements = {
         userName: document.getElementById('userName'),
@@ -87,12 +89,12 @@ function updateUI() {
     if (elements.userAvatar) elements.userAvatar.textContent = window.currentUser.displayName.charAt(0).toUpperCase();
     if (elements.profileName) elements.profileName.textContent = window.currentUser.displayName;
     if (elements.profileAvatar) elements.profileAvatar.textContent = window.currentUser.displayName.charAt(0).toUpperCase();
-    if (elements.profileUsername) elements.profileUsername.textContent = window.currentUser.username ? `@${window.currentUser.username}` : 'username yo\'q';
+    if (elements.profileUsername) elements.profileUsername.textContent = window.currentUser.username ? `@${window.currentUser.username}` : 'mehmon';
     if (elements.tgId) elements.tgId.textContent = window.currentUser.id;
-    if (elements.tgUsername) elements.tgUsername.textContent = window.currentUser.username || '-';
+    if (elements.tgUsername) elements.tgUsername.textContent = window.currentUser.username || 'mehmon';
     if (elements.loginDate) elements.loginDate.textContent = new Date().toLocaleString('uz-UZ');
     
-    // Profil formasini lokal saqlangan ma'lumotlar bilan to'ldirish
+    // Profil formasini to'ldirish (lokal saqlangan)
     const savedProfile = localStorage.getItem(`olex_profile_${window.currentUser.id}`);
     if (savedProfile) {
         const profile = JSON.parse(savedProfile);
@@ -101,10 +103,7 @@ function updateUI() {
     }
 }
 
-// -------------------- 2. MAHSULOTLARNI YUKLASH --------------------
-/**
- * Serverdan barcha mahsulotlarni GET so'rov orqali olish va ro'yxatni ko'rsatish
- */
+// -------------------- MAHSULOTLARNI YUKLASH --------------------
 async function loadProducts() {
     const container = document.getElementById('productsContainer');
     if (!container) return;
@@ -129,10 +128,6 @@ async function loadProducts() {
     }
 }
 
-/**
- * Mahsulotlar ro'yxatini HTML da ko'rsatish (filter va qidiruvni qo'llagan holda)
- * @param {Array} products - Mahsulotlar massivi
- */
 function renderProducts(products) {
     const container = document.getElementById('productsContainer');
     if (!container) return;
@@ -165,10 +160,6 @@ function renderProducts(products) {
     `).join('')}</div>`;
 }
 
-/**
- * Mahsulot detalini modal oynada ko'rsatish
- * @param {number} productId - Mahsulotning id si (qator raqami)
- */
 function showProductDetail(productId) {
     const product = window.allProducts.find(p => p.id == productId);
     if (!product) return;
@@ -192,10 +183,7 @@ function showProductDetail(productId) {
     document.body.appendChild(modal);
 }
 
-// -------------------- 3. MENGING E'LONLARIM --------------------
-/**
- * Joriy foydalanuvchiga tegishli e'lonlarni ro'yxatini ko'rsatadi
- */
+// -------------------- MENGING E'LONLARIM --------------------
 function loadMyProducts() {
     const myProducts = window.allProducts.filter(p => p.userId === window.currentUser?.id && p.status !== 'deleted');
     const container = document.getElementById('myProductsList');
@@ -215,10 +203,7 @@ function loadMyProducts() {
     `).join('');
 }
 
-// -------------------- 4. CHAT XABARLARINI YUKLASH --------------------
-/**
- * Serverdan chat xabarlarini GET so'rov orqali olish va ko'rsatish
- */
+// -------------------- CHAT --------------------
 async function loadChat() {
     try {
         const response = await fetch(`${API_URL}?action=getMessages&t=${Date.now()}`);
@@ -232,9 +217,6 @@ async function loadChat() {
     }
 }
 
-/**
- * Chat xabarlarini HTML da ko'rsatish (eng yangisi eng pastda)
- */
 function renderChat() {
     const container = document.getElementById('chatMessages');
     if (!container) return;
@@ -255,16 +237,13 @@ function renderChat() {
     container.scrollTop = container.scrollHeight;
 }
 
-// -------------------- 5. EVENT LISTENERLAR VA BOSHLANG'ICH SOZLAMALAR --------------------
-/**
- * DOM to'liq yuklangandan keyin barcha kerakli funksiyalarni ishga tushiradi
- */
+// -------------------- EVENT LISTENERLAR VA BOSHLASH --------------------
 document.addEventListener('DOMContentLoaded', async () => {
-    await initTelegramAuth();
+    await initTelegramAuth();  // test foydalanuvchi yaratadi
     await loadProducts();
     await loadChat();
     
-    // Tab o'zgartirish
+    // Tablar
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -276,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Kategoriya filtri
+    // Kategoriya filtrlari
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -286,26 +265,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    // Qidiruv inputi
+    // Qidiruv
     document.getElementById('searchInput')?.addEventListener('input', e => {
         window.searchQuery = e.target.value;
         renderProducts(window.allProducts);
     });
     
-    // Tugmalarni ulash (yubor.js dagi funksiyalar)
+    // Tugmalar
     document.getElementById('addProductBtn')?.addEventListener('click', window.addProduct);
     document.getElementById('saveProfileBtn')?.addEventListener('click', window.saveProfile);
     document.getElementById('sendChatBtn')?.addEventListener('click', window.sendMessage);
     document.getElementById('chatInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') window.sendMessage(); });
     
-    // Har 5 sekundda chatni yangilash (agar chat tabi aktiv bo'lsa)
+    // Chatni yangilash (faqat chat tab aktiv bo'lsa)
     setInterval(() => {
         const chatTab = document.querySelector('.tab-btn[data-tab="chat"]');
         if (chatTab?.classList.contains('active')) loadChat();
     }, 5000);
 });
 
-// Global funksiyalarni oynaga biriktirish (HTML dan chaqirish uchun)
+// Global funksiyalar
 window.loadProducts = loadProducts;
 window.showProductDetail = showProductDetail;
 window.loadChat = loadChat;
