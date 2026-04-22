@@ -16,7 +16,6 @@
         <div class="splash-text">Xavfsiz ulanish tekshirilmoqda...</div>
     </div>
 
-    <!-- Asosiy ilova -->
     <div class="app-container" id="appContainer" style="display: none;">
         <!-- Header -->
         <div class="header">
@@ -38,6 +37,7 @@
             <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
             <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
             <button class="tab-btn" data-tab="profile">👤 Profilim</button>
+            <button class="tab-btn" data-tab="chat">💬 Chat</button>
         </div>
 
         <!-- HOME TAB -->
@@ -94,6 +94,10 @@
                     <label>📞 Aloqa uchun telefon</label>
                     <input type="tel" id="productContact" class="form-input" placeholder="+998 90 123 45 67">
                 </div>
+                <div class="form-group">
+                    <label>🖼️ Rasm (ixtiyoriy)</label>
+                    <input type="file" id="productImage" class="form-input" accept="image/*">
+                </div>
                 <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
             </div>
             
@@ -120,55 +124,37 @@
             </div>
 
             <div class="info-section">
-                <div class="info-title">
-                    <span>📋</span>
-                    <span>Shaxsiy ma'lumotlar</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Telegram ID</span>
-                    <span class="info-value" id="tgId">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Foydalanuvchi nomi</span>
-                    <span class="info-value" id="tgUsername">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Ulangan sana</span>
-                    <span class="info-value" id="loginDate">-</span>
-                </div>
+                <div class="info-title"><span>📋</span><span>Shaxsiy ma'lumotlar</span></div>
+                <div class="info-row"><span class="info-label">Telegram ID</span><span class="info-value" id="tgId">-</span></div>
+                <div class="info-row"><span class="info-label">Foydalanuvchi nomi</span><span class="info-value" id="tgUsername">-</span></div>
             </div>
 
             <div class="info-section">
-                <div class="info-title">
-                    <span>📞</span>
-                    <span>Kontakt ma'lumotlar</span>
-                </div>
-                <div class="form-group">
-                    <label>To'liq ism</label>
-                    <input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz">
-                </div>
-                <div class="form-group">
-                    <label>Telefon raqam</label>
-                    <input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67">
-                </div>
+                <div class="info-title"><span>📞</span><span>Kontakt ma'lumotlar</span></div>
+                <div class="form-group"><label>To'liq ism</label><input type="text" id="fullName" class="form-input" placeholder="Ism Familiyangiz"></div>
+                <div class="form-group"><label>Telefon raqam</label><input type="tel" id="phoneNumber" class="form-input" placeholder="+998 90 123 45 67"></div>
                 <button id="saveProfileBtn" class="submit-btn">💾 Ma'lumotlarni saqlash</button>
             </div>
 
             <div class="info-section">
-                <div class="info-title">
-                    <span>📦</span>
-                    <span>Mening e'lonlarim</span>
+                <div class="info-title"><span>📦</span><span>Mening e'lonlarim</span></div>
+                <div id="myProductsList"><div class="loading-state-small"><div class="loading-spinner-small"></div><p>Yuklanmoqda...</p></div></div>
+            </div>
+        </div>
+
+        <!-- CHAT TAB -->
+        <div class="tab-content" id="chatTab">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Xabarlar yuklanmoqda...</p></div>
                 </div>
-                <div id="myProductsList">
-                    <div class="loading-state-small">
-                        <div class="loading-spinner-small"></div>
-                        <p>Yuklanmoqda...</p>
-                    </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Xabar yozing...">
+                    <button id="sendChatBtn" class="send-btn">➤</button>
                 </div>
             </div>
         </div>
 
-        <!-- Toast xabarlar -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
