@@ -2,111 +2,172 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>OleX Market | Savdo platformasi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub + SheetDB Loyihasi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h2, h3 { margin-top: 0; color: #1a1a1a; }
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea { height: 100px; resize: vertical; }
+        button {
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #2c974b; }
+        .refresh-btn {
+            background-color: #0284c7;
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .refresh-btn:hover { background-color: #0369a1; }
+        .data-list {
+            margin-top: 20px;
+            padding: 0;
+            list-style: none;
+        }
+        .data-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 5px solid #2ea44f;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+        .data-item small {
+            color: #666;
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">🛍️</div>
-        <div class="splash-title">OleX Market</div>
-        <div class="splash-spinner"></div>
-        <div class="splash-text">Telegram xavfsiz ulanish tekshirilmoqda...</div>
+
+<div class="container">
+    <h2>Xabarlar paneli</h2>
+    
+    <form id="messageForm">
+        <input type="text" id="nameInput" placeholder="Ismingiz" required>
+        <textarea id="messageInput" placeholder="Xabaringizni yozing..." required></textarea>
+        <button type="submit" id="submitBtn">Yuborish 🚀</button>
+    </form>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Kelgan xabarlar</h3>
+        <button class="refresh-btn" onclick="fetchMessages()">Yangilash 🔄</button>
     </div>
+    
+    <ul id="messagesList" class="data-list">
+        <li>Yuklanmoqda...</li>
+    </ul>
+</div>
 
-    <div class="app-container" id="appContainer" style="display: none;">
-        <div class="header">
-            <div class="header-logo">
-                <span class="logo-icon">🛍️</span>
-                <span class="logo-text">OleX Market</span>
-            </div>
-            <div class="header-user">
-                <div class="user-avatar" id="userAvatar">👤</div>
-                <div class="user-info">
-                    <span class="user-name" id="userName">Yuklanmoqda...</span>
-                    <span class="user-status">🔒 Xavfsiz ulangan</span>
-                </div>
-            </div>
-        </div>
+<script>
+    // ⚠️ BU YERGA O'ZINGIZNING SHEETDB API URL'INGIZNI QO'YING
+    const API_URL = 'https://sheetdb.io/api/v1/YOUR_API_ID';
 
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="home">🏠 Bosh sahifa</button>
-            <button class="tab-btn" data-tab="add">➕ E'lon berish</button>
-            <button class="tab-btn" data-tab="profile">👤 Profilim</button>
-            <button class="tab-btn" data-tab="chat">💬 Chat</button>
-        </div>
+    // 1. Ma'lumotlarni bazadan olish (GET so'rovi)
+    async function fetchMessages() {
+        const list = document.getElementById('messagesList');
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            list.innerHTML = '';
+            if (data.length === 0) {
+                list.innerHTML = '<li>Hozircha xabarlar yo\'q. Birinchi bo\'lib yozing!</li>';
+                return;
+            }
 
-        <div class="tab-content active" id="homeTab">
-            <div class="search-section">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Mahsulot qidirish...">
-                </div>
-                <div class="categories" id="categories">
-                    <button class="cat-btn active" data-cat="all">🏠 Barchasi</button>
-                    <button class="cat-btn" data-cat="elektronika">📱 Elektronika</button>
-                    <button class="cat-btn" data-cat="kiyim-kechak">👕 Kiyim-kechak</button>
-                    <button class="cat-btn" data-cat="uy-joy">🏠 Uy-joy</button>
-                    <button class="cat-btn" data-cat="transport">🚗 Transport</button>
-                    <button class="cat-btn" data-cat="boshqa">📦 Boshqa</button>
-                </div>
-            </div>
-            <div id="productsContainer" class="products-container"></div>
-        </div>
+            // Eng yangi xabarlarni tepada ko'rsatish uchun teskari tartiblaymiz
+            data.reverse().forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'data-item';
+                li.innerHTML = `<strong>${item.ism}:</strong> ${item.xabar} <small>🕒 ${item.vaqt || 'Noma\'lum'}</small>`;
+                list.appendChild(li);
+            });
+        } catch (error) {
+            list.innerHTML = '<li style="color:red;">Ma\'lumotni yuklashda xatolik yuz berdi.</li>';
+            console.error('Xatolik:', error);
+        }
+    }
 
-        <div class="tab-content" id="addTab">
-            <div class="form-card">
-                <h3 class="form-title">➕ Yangi e'lon berish</h3>
-                <div class="form-group">
-                    <label>📁 Kategoriya</label>
-                    <select id="productCategory" class="form-input">
-                        <option value="elektronika">📱 Elektronika</option>
-                        <option value="kiyim-kechak">👕 Kiyim-kechak</option>
-                        <option value="uy-joy">🏠 Uy-joy</option>
-                        <option value="transport">🚗 Transport</option>
-                        <option value="boshqa">📦 Boshqa</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>📝 Mahsulot nomi</label><input type="text" id="productName" class="form-input" placeholder="Masalan: iPhone 15 Pro"></div>
-                <div class="form-group"><label>💰 Narxi (so'm)</label><input type="number" id="productPrice" class="form-input" placeholder="15000000"></div>
-                <div class="form-group"><label>📖 Tavsif</label><textarea id="productDesc" class="form-input" rows="3" placeholder="Mahsulot haqida batafsil ma'lumot..."></textarea></div>
-                <div class="form-group"><label>📞 Aloqa uchun telefon</label><input type="tel" id="productContact" class="form-input" placeholder="+998 90 123 45 67"></div>
-                <div class="form-group"><label>🖼️ Rasm (ixtiyoriy)</label><input type="file" id="productImage" class="form-input" accept="image/*"></div>
-                <button id="addProductBtn" class="submit-btn">✅ E'lonni joylash</button>
-            </div>
-        </div>
+    // 2. Ma'lumotni bazaga yuborish (POST so'rovi)
+    document.getElementById('messageForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const nameInput = document.getElementById('nameInput');
+        const messageInput = document.getElementById('messageInput');
 
-        <div class="tab-content" id="profileTab">
-            <div class="profile-card">
-                <div class="profile-avatar" id="profileAvatar">👤</div>
-                <h2 class="profile-name" id="profileName">Yuklanmoqda...</h2>
-                <div class="profile-username" id="profileUsername">@username</div>
-            </div>
-            <div class="info-section">
-                <div class="info-title"><span>📋</span><span>Shaxsiy ma'lumotlar</span></div>
-                <div class="info-row"><span class="info-label">Telegram ID</span><span class="info-value" id="tgId">-</span></div>
-            </div>
-            <div class="info-section">
-                <div class="info-title"><span>📦</span><span>Mening e'lonlarim</span></div>
-                <div id="myProductsList"></div>
-            </div>
-        </div>
+        // SheetDB ma'lumotni mana shu formatda qabul qiladi
+        const newData = {
+            data: [
+                {
+                    ism: nameInput.value,
+                    xabar: messageInput.value,
+                    vaqt: new Date().toLocaleString('uz-UZ')
+                }
+            ]
+        };
 
-        <div class="tab-content" id="chatTab">
-            <div class="chat-container">
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Xabar yozing...">
-                    <button id="sendChatBtn" class="send-btn">➤</button>
-                </div>
-            </div>
-        </div>
+        // Tugmani vaqtincha faolsizlantirish
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Yuborilmoqda...';
 
-        <div id="toastContainer" class="toast-container"></div>
-    </div>
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newData)
+            });
 
-    <script src="app.js"></script>
+            if (response.ok) {
+                messageInput.value = ''; // Matn maydonini tozalash
+                await fetchMessages();  // Ro'yxatni qayta yangilash
+            } else {
+                alert('Xabarni yuborishda xatolik bo\'ldi.');
+            }
+        } catch (error) {
+            console.error('Xatolik:', error);
+            alert('Server bilan aloqa uzildi.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Yuborish 🚀';
+        }
+    });
+
+    // Sahifa ilk bor yuklanganda ma'lumotlarni avtomatik olib kelish
+    window.onload = fetchMessages;
+</script>
 </body>
 </html>
