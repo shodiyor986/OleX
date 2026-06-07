@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lenta — GitHub, Drive & Sheets</title>
+    <title>Lenta — GitHub & SheetDB</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,39 +31,42 @@
         }
         textarea { height: 100px; resize: vertical; }
         
-        /* 📸 Yangi chiroyli rasm yuklash maydoni */
         .upload-zone {
             border: 2px dashed #007bff;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
             text-align: center;
             background: #f8fafc;
             cursor: pointer;
             margin: 12px 0;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
         .upload-zone:hover {
             background: #f0f7ff;
+            border-color: #0056b3;
         }
         .upload-zone p {
             margin: 0;
             color: #007bff;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 15px;
         }
-        #rasm { display: none; } /* Eski xunuk tugmani yashiramiz */
+        #rasm { display: none; }
 
-        /* 🖼️ Tanlangan rasmni yuborishdan oldin ko'rish (Preview) */
         .preview-container {
             display: none;
             text-align: center;
-            margin: 10px 0;
-            position: relative;
+            margin: 15px 0;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fafafa;
         }
         .preview-container img {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            max-height: 220px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         button {
@@ -83,15 +86,15 @@
             font-size: 14px;
         }
         .refresh-btn:hover { background-color: #5a6268; }
-        .lenta-container { margin-top: 20px; }
+        .lenta-container { margin-top: 25px; }
         
-        /* 📰 Kelgan postlar dizayni */
         .post {
             background: #f8f9fa;
             padding: 18px;
             border-radius: 10px;
             margin-bottom: 15px;
             border: 1px solid #eaeaea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
         .post strong { color: #007bff; font-size: 16px; }
         .post small { color: #888; display: block; margin-top: 4px; font-size: 12px; }
@@ -102,7 +105,7 @@
             border-radius: 8px;
             margin-top: 12px;
             display: block;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
         }
     </style>
 </head>
@@ -115,11 +118,12 @@
         <textarea id="xabar" placeholder="Fikringiz yoki xabaringiz..." required></textarea>
         
         <div class="upload-zone" onclick="document.getElementById('rasm').click()">
-            <p>🖼️ Rasm yuklash uchun bosing</p>
+            <p>🖼️ Rasm yuklash uchun shu yerga bosing</p>
             <input type="file" id="rasm" accept="image/*">
         </div>
 
         <div class="preview-container" id="previewContainer">
+            <div style="font-size: 13px; color: #666; margin-bottom: 5px;">Tanlangan rasm:</div>
             <img id="imagePreview" src="" alt="Oldindan ko'rish">
         </div>
         
@@ -137,10 +141,13 @@
 </div>
 
 <script>
-    // Sizning shaxsiy Apps Script API manzilingiz:
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwZ7LU-IFDjpoH-Ck8sIhu639At0oZfra1HfnFfQwPStMT2zgHjcfOA5qaZdjUPUk04oA/exec';
+    // 🔗 Yangi SheetDB API havolangiz:
+    const SHEETDB_URL = 'https://sheetdb.io/api/v1/ismqzmra83a4l';
 
-    // Rasm tanlanganda uni ekranda ko'rsatish (Preview funksiyasi)
+    // 🔑 Bepul ImgBB API kalitingizni shu yerga qo'ying:
+    const IMGBBB_API_KEY = 'BU_YERGA_IMGBB_API_KEY_QO_YING';
+
+    // Rasmni tanlanganda ekranda ko'rsatish
     document.getElementById('rasm').addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -153,15 +160,7 @@
         }
     });
 
-    // Rasmni fonda yuborish uchun Base64 formatga o'tkazish
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-    });
-
-    // 1. Ma'lumotni bazaga yuborish (POST)
+    // Post yuborish tizimi (POST)
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btn');
@@ -172,32 +171,58 @@
         const xabar = document.getElementById('xabar').value;
         const rasmFayl = document.getElementById('rasm').files[0];
 
-        let rasmData = { rasmBase64: null, rasmMimeType: null, rasmNomi: null };
-
-        if (rasmFayl) {
-            rasmData.rasmBase64 = await toBase64(rasmFayl);
-            rasmData.rasmMimeType = rasmFayl.type;
-            rasmData.rasmNomi = rasmFayl.name;
-        }
-
-        const payload = { ism, xabar, ...rasmData };
+        let finalRasmUrl = "";
 
         try {
-            const res = await fetch(API_URL, {
+            // 1. Agar rasm yuklangan bo'lsa, uni birinchi ImgBB-ga yuklaymiz
+            if (rasmFayl) {
+                const formData = new FormData();
+                formData.append("image", rasmFayl);
+
+                const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBBB_API_KEY}`, {
+                    method: "POST",
+                    body: formData
+                });
+                const imgbbData = await imgbbRes.json();
+                
+                if (imgbbData.success) {
+                    finalRasmUrl = imgbbData.data.url; // To'g'ridan-to'g'ri ochiladigan havola
+                } else {
+                    throw new Error("Rasm yuklashda xatolik yuz berdi (ImgBB).");
+                }
+            }
+
+            // 2. Ma'lumotlarni SheetDB formatida tayyorlash
+            const payload = {
+                data: [
+                    {
+                        ism: ism,
+                        xabar: xabar,
+                        rasm_link: finalRasmUrl,
+                        vaqt: new Date().toLocaleString("uz-UZ")
+                    }
+                ]
+            };
+
+            // 3. SheetDB-ga POST so'rovi yuborish
+            const res = await fetch(SHEETDB_URL, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
             });
             const result = await res.json();
             
-            if (result.status === 'success') {
+            if (result.created === 1) {
                 document.getElementById('uploadForm').reset();
-                document.getElementById('previewContainer').style.display = 'none'; // Preview yopish
-                await yuklashLenta(); // Lentani yangilash
+                document.getElementById('previewContainer').style.display = 'none'; 
+                await yuklashLenta(); 
             } else {
-                alert('Xatolik yuz berdi: ' + result.message);
+                alert('Xatolik: Ma\'lumot jadvalga yozilmadi.');
             }
         } catch (err) {
-            alert('Server bilan aloqada xatolik!');
+            alert('Xatolik yuz berdi: ' + err.message);
             console.error(err);
         } finally {
             btn.disabled = false;
@@ -205,35 +230,22 @@
         }
     });
 
-    // 2. Ma'lumotlarni bazadan o'qish va rasmlarni ko'rsatish (GET)
+    // Ma'lumotlarni jadvaldan o'qib kelish (GET)
     async function yuklashLenta() {
         const lenta = document.getElementById('lenta');
         try {
-            const res = await fetch(API_URL);
+            const res = await fetch(SHEETDB_URL);
             const data = await res.json();
             lenta.innerHTML = '';
             
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 lenta.innerHTML = '<p style="color:#666; text-align:center;">Hozircha xabarlar yo\'q.</p>';
                 return;
             }
 
+            // Eng yangi postlarni yuqorida ko'rsatish
             data.reverse().forEach(item => {
-                let rasmHTML = '';
-
-                // Google Drive havolasidan rasm ID-sini ajratib olib, to'g'ridan-to'g'ri render qilish
-                if (item.rasm_link) {
-                    let fileId = '';
-                    const matches = item.rasm_link.match(/\/d\/([^/]+)/) || item.rasm_link.match(/id=([^&]+)/);
-                    if (matches && matches[1]) {
-                        fileId = matches[1];
-                    }
-
-                    if (fileId) {
-                        const directImageUrl = `https://docs.google.com/uc?export=view&id=${fileId}`;
-                        rasmHTML = `<img src="${directImageUrl}" alt="Post rasm">`;
-                    }
-                }
+                let rasmHTML = item.rasm_link ? `<img src="${item.rasm_link}" alt="Yuklangan rasm">` : '';
 
                 lenta.innerHTML += `
                     <div class="post">
@@ -245,7 +257,7 @@
                 `;
             });
         } catch (e) {
-            lenta.innerHTML = '<p style="color:red; text-align:center;">Yuklashda xatolik yuz berdi.</p>';
+            lenta.innerHTML = '<p style="color:red; text-align:center;">Lentani yuklashda xatolik yuz berdi.</p>';
             console.error(e);
         }
     }
