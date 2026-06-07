@@ -5,7 +5,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Telegram theme vars (fallback if not in TG) */
   --tg-bg:        var(--tg-theme-bg-color, #f0f4f8);
   --tg-text:      var(--tg-theme-text-color, #1a1a2e);
   --tg-hint:      var(--tg-theme-hint-color, #7a8498);
@@ -14,7 +13,6 @@
   --tg-btn-text:  var(--tg-theme-button-text-color, #ffffff);
   --tg-secondary: var(--tg-theme-secondary-bg-color, #ffffff);
 
-  /* Custom vars */
   --accent:   #f97316;
   --accent2:  #ea580c;
   --green:    #16a34a;
@@ -41,9 +39,6 @@ body {
 
 .hidden { display: none !important; }
 
-/* =====================
-   SPLASH SCREEN
-   ===================== */
 #splash {
   position: fixed; inset: 0;
   background: linear-gradient(160deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
@@ -67,9 +62,6 @@ body {
   animation: load 1.8s ease forwards; }
 @keyframes load { to { width: 100%; } }
 
-/* =====================
-   NO USERNAME SCREEN
-   ===================== */
 #noUsernameScreen {
   position: fixed; inset: 0;
   background: var(--tg-bg);
@@ -90,18 +82,12 @@ body {
 .nu-hint    { font-size: 0.82rem !important; background: #fef3c7; color: #92400e !important;
   padding: 10px 12px; border-radius: 10px; }
 
-/* =====================
-   APP WRAPPER
-   ===================== */
 #app {
   position: fixed; inset: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
 
-/* =====================
-   TOPBAR
-   ===================== */
 #topbar {
   background: var(--card-bg);
   border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -149,9 +135,6 @@ body {
 }
 .search-bar input:focus { border-color: var(--accent); }
 
-/* =====================
-   PAGE CONTAINER
-   ===================== */
 #pageContainer {
   flex: 1;
   overflow-y: auto;
@@ -164,15 +147,11 @@ body {
 .page { padding: 12px; animation: fadeIn 0.25s ease; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
 
-/* =====================
-   SECTION HEADERS
-   ===================== */
 .section-header { margin-bottom: 12px; }
 .section-header h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; }
 .page-header { margin-bottom: 14px; }
 .page-header h2 { font-size: 1.15rem; font-weight: 700; }
 
-/* Filter tabs */
 .filter-tabs {
   display: flex; gap: 7px;
   overflow-x: auto;
@@ -201,9 +180,6 @@ body {
   color: white;
 }
 
-/* =====================
-   PRODUCT GRID
-   ===================== */
 .product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -257,7 +233,6 @@ body {
   padding: 2px 7px; border-radius: 8px;
 }
 
-/* Loading & empty */
 .loading-state {
   grid-column: 1/-1;
   text-align: center; padding: 40px 20px;
@@ -279,9 +254,6 @@ body {
 .empty-state-full .big-emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
 .empty-my { color: var(--tg-hint); font-size: 0.9rem; grid-column:1/-1; text-align:center; padding:20px; }
 
-/* =====================
-   FORM CARD
-   ===================== */
 .form-card {
   background: var(--card-bg);
   border-radius: var(--card-r);
@@ -321,7 +293,6 @@ body {
 .field-group select:focus { border-color: var(--accent); background: white; }
 .field-group textarea { resize: vertical; min-height: 80px; }
 
-/* Upload zone */
 .upload-zone {
   border: 2px dashed var(--accent);
   border-radius: 12px;
@@ -347,7 +318,6 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 
-/* Sale toggle */
 .sale-toggle-wrap { margin-bottom: 16px; }
 .toggle-label {
   display: flex; align-items: center; justify-content: space-between;
@@ -373,9 +343,6 @@ body {
 .toggle input:checked ~ .slider { background: var(--green); }
 .toggle input:checked ~ .slider::before { transform: translateX(20px); }
 
-/* =====================
-   BUTTONS
-   ===================== */
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   color: white;
@@ -420,6 +387,7 @@ body {
   cursor: pointer;
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 6px;
+  text-decoration: none;
 }
 .btn-tg {
   background: #229ED9;
@@ -434,9 +402,9 @@ body {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 10px;
+  text-decoration: none;
 }
 
-/* Status messages */
 .status-msg {
   margin-top: 12px;
   padding: 11px 14px;
@@ -448,9 +416,6 @@ body {
 .status-msg.success { background: #dcfce7; color: #15803d; }
 .status-msg.error   { background: #fee2e2; color: #b91c1c; }
 
-/* =====================
-   PROFILE PAGE
-   ===================== */
 .profile-hero {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   border-radius: var(--card-r);
@@ -471,7 +436,6 @@ body {
 .profile-info h2 { font-size: 1.2rem; font-weight: 700; line-height: 1.2; }
 .profile-uname   { font-size: 0.88rem; opacity: 0.85; margin-top: 3px; }
 
-/* Emoji grid */
 .emoji-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -495,9 +459,6 @@ body {
 .my-products-section { margin-top: 4px; }
 .my-products-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
 
-/* =====================
-   DETAIL PAGE
-   ===================== */
 .detail-back { margin-bottom: 12px; }
 .back-btn {
   background: var(--card-bg);
@@ -558,9 +519,6 @@ body {
 .seller-phone { font-size: 0.9rem; color: var(--tg-hint); margin-top: 2px; }
 .contact-buttons { display: flex; flex-direction: column; gap: 10px; }
 
-/* =====================
-   BOTTOM NAV
-   ===================== */
 #bottomNav {
   height: var(--nav-h);
   background: var(--card-bg);
@@ -585,7 +543,6 @@ body {
 .nav-icon  { font-size: 1.35rem; line-height: 1; }
 .nav-label { font-size: 0.68rem; font-weight: 600; color: var(--tg-hint); }
 .nav-btn.active .nav-label { color: var(--accent); }
-.nav-btn.active .nav-icon  { filter: none; }
 
 .add-btn-nav {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -598,9 +555,6 @@ body {
 .add-btn-nav .nav-label { color: rgba(255,255,255,0.9); }
 .add-btn-nav:active { opacity: 0.85; }
 
-/* =====================
-   MY PRODUCT CARD (small)
-   ===================== */
 .my-prod-card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -625,7 +579,4 @@ body {
   cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 
-/* =====================
-   UTILITY
-   ===================== */
 .price-fmt::after { content: " so'm"; font-size: 0.7em; opacity: 0.75; }
