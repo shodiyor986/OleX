@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub + SheetDB Loyihasi</title>
+    <title>Lenta — GitHub, Drive & Sheets</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -16,156 +16,190 @@
         .container {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
         }
-        h2, h3 { margin-top: 0; color: #1a1a1a; }
+        h2, h3 { margin-top: 0; color: #111; }
         input, textarea, button {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            border: 1px solid #ddd;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 15px;
         }
         textarea { height: 100px; resize: vertical; }
         button {
-            background-color: #2ea44f;
+            background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
             font-weight: bold;
             transition: background 0.2s;
         }
-        button:hover { background-color: #2c974b; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
         .refresh-btn {
-            background-color: #0284c7;
+            background-color: #6c757d;
             width: auto;
             padding: 8px 15px;
             font-size: 14px;
         }
-        .refresh-btn:hover { background-color: #0369a1; }
-        .data-list {
+        .refresh-btn:hover { background-color: #5a6268; }
+        .lenta-container {
             margin-top: 20px;
-            padding: 0;
-            list-style: none;
         }
-        .data-item {
+        .post {
             background: #f8f9fa;
-            padding: 15px;
-            border-left: 5px solid #2ea44f;
-            margin-bottom: 12px;
-            border-radius: 0 8px 8px 0;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #eaeaea;
         }
-        .data-item small {
-            color: #666;
+        .post strong { color: #007bff; font-size: 16px; }
+        .post small { color: #888; display: block; margin-top: 4px; font-size: 12px; }
+        .post p { margin: 10px 0 0 0; line-height: 1.5; font-size: 15px; white-space: pre-wrap; }
+        .post img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 12px;
             display: block;
-            margin-top: 5px;
-            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Xabarlar paneli</h2>
-    
-    <form id="messageForm">
-        <input type="text" id="nameInput" placeholder="Ismingiz" required>
-        <textarea id="messageInput" placeholder="Xabaringizni yozing..." required></textarea>
-        <button type="submit" id="submitBtn">Yuborish 🚀</button>
+    <h2>Yangi post yaratish</h2>
+    <form id="uploadForm">
+        <input type="text" id="ism" placeholder="Ismingiz" required>
+        <textarea id="xabar" placeholder="Fikringiz yoki xabaringiz..." required></textarea>
+        
+        <div style="margin: 10px 0 5px 0;">
+            <label style="font-size: 14px; color: #555; font-weight: 500;">Rasm biriktirish (ixtiyoriy):</label>
+        </div>
+        <input type="file" id="rasm" accept="image/*">
+        
+        <button type="submit" id="btn">Yuborish 🚀</button>
     </form>
 
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
 
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Kelgan xabarlar</h3>
-        <button class="refresh-btn" onclick="fetchMessages()">Yangilash 🔄</button>
+        <h3>Yangiliklar lentasi</h3>
+        <button class="refresh-btn" onclick="yuklashLenta()">Yangilash 🔄</button>
     </div>
     
-    <ul id="messagesList" class="data-list">
-        <li>Yuklanmoqda...</li>
-    </ul>
+    <div id="lenta" class="lenta-container">Yuklanmoqda...</div>
 </div>
 
 <script>
-    // Sizning shaxsiy SheetDB API URL manzilingiz ulandi:
-    const API_URL = 'https://sheetdb.io/api/v1/li6903lb9hwm2';
+    // Siz taqdim etgan shaxsiy Apps Script API manzili ulandi:
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyjK0Ecnp8vk8OlB39w2D0OxoSm_QFoBFdcoEAsinXW1JQvjJeLOgOzqPaews2iQeRm/exec';
 
-    // 1. Ma'lumotlarni bazadan olish (GET so'rovi)
-    async function fetchMessages() {
-        const list = document.getElementById('messagesList');
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            
-            list.innerHTML = '';
-            if (data.length === 0) {
-                list.innerHTML = '<li>Hozircha xabarlar yo\'q. Birinchi bo\'lib yozing!</li>';
-                return;
-            }
+    // Rasmni fonda yuborish uchun Base64 formatga o'tkazish funksiyasi
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
 
-            // Eng yangi xabarlarni tepada ko'rsatish
-            data.reverse().forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'data-item';
-                li.innerHTML = `<strong>${item.ism}:</strong> ${item.xabar} <small>🕒 ${item.vaqt || 'Noma\'lum'}</small>`;
-                list.appendChild(li);
-            });
-        } catch (error) {
-            list.innerHTML = '<li style="color:red;">Ma\'lumotni yuklashda xatolik yuz berdi.</li>';
-            console.error('Xatolik:', error);
-        }
-    }
-
-    // 2. Ma'lumotni bazaga yuborish (POST so'rovi)
-    document.getElementById('messageForm').addEventListener('submit', async (e) => {
+    // 1. Ma'lumotni bazaga yuborish (POST)
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const submitBtn = document.getElementById('submitBtn');
-        const nameInput = document.getElementById('nameInput');
-        const messageInput = document.getElementById('messageInput');
+        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        btn.innerText = 'Yuklanmoqda...';
 
-        const newData = {
-            data: [
-                {
-                    ism: nameInput.value,
-                    xabar: messageInput.value,
-                    vaqt: new Date().toLocaleString('uz-UZ')
-                }
-            ]
-        };
+        const ism = document.getElementById('ism').value;
+        const xabar = document.getElementById('xabar').value;
+        const rasmFayl = document.getElementById('rasm').files[0];
 
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Yuborilmoqda...';
+        let rasmData = { rasmBase64: null, rasmMimeType: null, rasmNomi: null };
+
+        if (rasmFayl) {
+            rasmData.rasmBase64 = await toBase64(rasmFayl);
+            rasmData.rasmMimeType = rasmFayl.type;
+            rasmData.rasmNomi = rasmFayl.name;
+        }
+
+        const payload = { ism, xabar, ...rasmData };
 
         try {
-            const response = await fetch(API_URL, {
+            const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newData)
+                body: JSON.stringify(payload)
             });
-
-            if (response.ok) {
-                messageInput.value = ''; 
-                await fetchMessages();  
+            const result = await res.json();
+            
+            if (result.status === 'success') {
+                document.getElementById('uploadForm').reset();
+                await yuklashLenta(); // Lentani yangilash
             } else {
-                alert('Xabarni yuborishda xatolik bo\'ldi.');
+                alert('Xatolik yuz berdi: ' + result.message);
             }
-        } catch (error) {
-            console.error('Xatolik:', error);
-            alert('Server bilan aloqa uzildi.');
+        } catch (err) {
+            alert('Server bilan aloqada xatolik!');
+            console.error(err);
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'Yuborish 🚀';
+            btn.disabled = false;
+            btn.innerText = 'Yuborish 🚀';
         }
     });
 
-    // Sahifa yuklanganda ma'lumotlarni avtomatik olib kelish
-    window.onload = fetchMessages;
+    // 2. Ma'lumotlarni bazadan o'qish va rasmlarni ko'rsatish (GET)
+    async function yuklashLenta() {
+        const lenta = document.getElementById('lenta');
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            lenta.innerHTML = '';
+            
+            if (data.length === 0) {
+                lenta.innerHTML = '<p style="color:#666; text-align:center;">Hozircha xabarlar yo\'q.</p>';
+                return;
+            }
+
+            // Eng yangi xabarlarni yuqorida ko'rsatish uchun teskari tartiblaymiz
+            data.reverse().forEach(item => {
+                let rasmHTML = '';
+
+                // Google Drive havolasidan rasm ID-sini ajratib olib vizual ko'rsatish
+                if (item.rasm_link) {
+                    let fileId = '';
+                    const matches = item.rasm_link.match(/\/d\/([^/]+)/) || item.rasm_link.match(/id=([^&]+)/);
+                    if (matches && matches[1]) {
+                        fileId = matches[1];
+                    }
+
+                    if (fileId) {
+                        // Google Drive rasmini to'g'ridan-to'g'ri render qiluvchi barqaror CDN havola
+                        const directImageUrl = `https://docs.google.com/uc?export=view&id=${fileId}`;
+                        rasmHTML = `<img src="${directImageUrl}" alt="Post rasm">`;
+                    }
+                }
+
+                lenta.innerHTML += `
+                    <div class="post">
+                        <strong>${item.ism}</strong>
+                        <small>🕒 ${item.vaqt || 'Noma\'lum'}</small>
+                        <p>${item.xabar}</p>
+                        ${rasmHTML}
+                    </div>
+                `;
+            });
+        } catch (e) {
+            lenta.innerHTML = '<p style="color:red; text-align:center;">Yuklashda xatolik yuz berdi.</p>';
+            console.error(e);
+        }
+    }
+
+    // Sahifa birinchi marta ochilganda lentani avtomatik yuklash
+    window.onload = yuklashLenta;
 </script>
 </body>
 </html>
