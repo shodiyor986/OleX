@@ -9,21 +9,10 @@
 const CFG = {
   SHEETDB:    'https://sheetdb.io/api/v1/ismqzmra83a4l',
   IMGBB_KEY:  '786b6ed20a17f40a8a6d037aef43fdc7',
-  SHEET_PRODUCTS: 'Mahsulotlar',   // Google Sheets tab nomi
-  SHEET_PROFILES: 'Profillar',     // Google Sheets tab nomi
-  EXPIRE_DAYS: 7                   // Mahsulot necha kundan keyin o'chadi
+  SHEET_PRODUCTS: 'Mahsulotlar',
+  SHEET_PROFILES: 'Profillar',
+  EXPIRE_DAYS: 7
 };
-
-/* Google Sheets ustunlari:
-   ┌─ Mahsulotlar varog'i ──────────────────────────────────────┐
-   │  id | user_id | title | price | category | location      │
-   │  description | phone | img_url | for_sale | created_at   │
-   └────────────────────────────────────────────────────────────┘
-   ┌─ Profillar varog'i ─────────────────────────────────────────┐
-   │  user_id | username | ism | familya | telefon | shahar   │
-   │  emoji | updated_at                                        │
-   └────────────────────────────────────────────────────────────┘
-*/
 
 /* ── EMOJI RO'YXATI ── */
 const EMOJIS = [
@@ -46,31 +35,57 @@ const CAT_LABELS = {
 
 /* ── HOLAT ── */
 let STATE = {
-  tgUser:       null,   // Telegram user object
-  profile:      null,   // SheetDB profile row
-  products:     [],     // Barcha mahsulotlar
-  filtered:     [],     // Filtr qilingan mahsulotlar
+  tgUser:       null,
+  profile:      null,
+  products:     [],
+  filtered:     [],
   currentCat:   'all',
   prevPage:     null,
   selectedEmoji: '😊',
-  profileLoaded: false,
-  headersEnsured: false  // Sheet headers bir marta yaratilganmi
+  profileLoaded: false
 };
 
 /* ═══════════════════════════════════════════
    ISHGA TUSHURISH
    ═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
-  // Telegram SDK ni o'rnatish
+  // ✅ FIX: searchToggleBtn listener shu yerda bo'lishi kerak
+  const searchToggleBtn = document.getElementById('searchToggleBtn');
+  if (searchToggleBtn) {
+    searchToggleBtn.addEventListener('click', () => {
+      const bar = document.getElementById('searchBar');
+      bar.classList.toggle('hidden');
+      if (!bar.classList.contains('hidden')) {
+        document.getElementById('searchInput').focus();
+      }
+    });
+  }
+
+  // prodImgInput listener
+  const prodImgInput = document.getElementById('prodImgInput');
+  if (prodImgInput) {
+    prodImgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('prodImgPreview').src = e.target.result;
+        document.getElementById('imgPreviewWrap').classList.remove('hidden');
+        document.getElementById('uploadZone').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Telegram SDK
   const tg = window.Telegram?.WebApp;
   if (tg) {
     tg.ready();
     tg.expand();
-    // Telegram mavzusini qo'llash
     document.documentElement.style.setProperty('--tg-bg', tg.themeParams?.bg_color || '#f0f4f8');
   }
 
-  // Splash animatsiyasi (kamida 1.8 soniya)
+  // Splash animatsiyasi
   await new Promise(r => setTimeout(r, 1900));
 
   // Telegram foydalanuvchisini olish
@@ -82,22 +97,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   splash.classList.add('fade-out');
   setTimeout(() => splash.classList.add('hidden'), 500);
 
-  // Ustunlarni bir marta yaratish (agar yo'q bo'lsa)
+  // Sheet headers yaratish
   ensureSheetHeaders();
 
   // Foydalanuvchini tekshirish
   if (tgUser && tgUser.username) {
-    // Username bor — ilovani ko'rsat
     document.getElementById('app').classList.remove('hidden');
     buildEmojiGrid();
-    // Profilni va mahsulotlarni yuklash
     await Promise.all([loadProfile(), loadProducts()]);
   } else if (tgUser && !tgUser.username) {
-    // Username yo'q
     document.getElementById('noUsernameScreen').classList.remove('hidden');
   } else {
-    // TG outside ya'ni brauzerda ochilgan — demo rejim
-    // Demo foydalanuvchi
+    // Demo rejim (brauzerda ochilganda)
     STATE.tgUser = { id: 'demo_001', username: 'demo_user', first_name: 'Demo', last_name: 'Foydalanuvchi' };
     document.getElementById('app').classList.remove('hidden');
     buildEmojiGrid();
@@ -114,14 +125,12 @@ function getTgUser(tg) {
 }
 
 /* ═══════════════════════════════════════════
-   SHEET HEADERS — AVTOMATIK YARATISH
+   SHEET HEADERS
    ═══════════════════════════════════════════ */
 async function ensureSheetHeaders() {
   try {
-    // Mahsulotlar varog'ini tekshirish
     const r1 = await apiGet(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}&limit=1`);
     if (!Array.isArray(r1) || r1.length === 0) {
-      // Bo'sh — bitta placeholder yozib ustunlarni yaratamiz, keyin o'chiramiz
       await apiPost(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`, {
         data: [{
           id: 'INIT', user_id: '', title: 'INIT', price: '0',
@@ -130,11 +139,9 @@ async function ensureSheetHeaders() {
           created_at: new Date().toISOString()
         }]
       });
-      // O'chirish
       await fetch(`${CFG.SHEETDB}/id/INIT?sheet=${CFG.SHEET_PRODUCTS}`, { method: 'DELETE' });
     }
 
-    // Profillar varog'ini tekshirish
     const r2 = await apiGet(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PROFILES}&limit=1`);
     if (!Array.isArray(r2) || r2.length === 0) {
       await apiPost(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PROFILES}`, {
@@ -161,14 +168,12 @@ function navigate(pageName, savePrev = true) {
     p.classList.toggle('hidden', p.id !== `page-${pageName}`);
   });
 
-  // Nav tugmalarini yangilash
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.page === pageName);
   });
 
   if (savePrev) STATE.prevPage = pageName;
 
-  // Sahifaga xos harakatlar
   if (pageName === 'home') {
     renderProducts(STATE.filtered.length ? STATE.filtered : STATE.products);
   }
@@ -201,7 +206,6 @@ async function loadProfile() {
       STATE.profile = data[0];
       STATE.selectedEmoji = data[0].emoji || '😊';
     } else {
-      // Yangi foydalanuvchi — bo'sh profil
       STATE.profile = {
         user_id: uid,
         username: STATE.tgUser.username || '',
@@ -221,12 +225,10 @@ function renderProfile() {
   if (!STATE.profile) return;
   const p = STATE.profile;
 
-  // Hero
   document.getElementById('profileAvatar').textContent   = p.emoji || '😊';
   document.getElementById('profileName').textContent     = [p.ism, p.familya].filter(Boolean).join(' ') || 'Ism kiritilmagan';
   document.getElementById('profileUsername').textContent = p.username ? `@${p.username}` : '';
 
-  // Form
   document.getElementById('pfIsm').value     = p.ism || '';
   document.getElementById('pfFamilya').value = p.familya || '';
   document.getElementById('pfTelefon').value = p.telefon || '';
@@ -253,18 +255,15 @@ async function saveProfile() {
   };
 
   try {
-    // Mavjudligini tekshirish
     const existing = await apiGet(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(uid)}&sheet=${CFG.SHEET_PROFILES}`);
 
     if (Array.isArray(existing) && existing.length > 0) {
-      // UPDATE
       await fetch(`${CFG.SHEETDB}/user_id/${encodeURIComponent(uid)}?sheet=${CFG.SHEET_PROFILES}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: payload })
       });
     } else {
-      // CREATE
       await apiPost(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PROFILES}`, { data: [payload] });
     }
 
@@ -279,7 +278,6 @@ async function saveProfile() {
   }
 }
 
-/* Emoji grid */
 function buildEmojiGrid() {
   const grid = document.getElementById('emojiGrid');
   grid.innerHTML = '';
@@ -312,14 +310,11 @@ async function loadProducts() {
     let data = await apiGet(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`);
     if (!Array.isArray(data)) data = [];
 
-    // Muddati o'tgan mahsulotlarni avtomatik o'chirish
     await autoDeleteExpired(data);
 
-    // Qaytadan yuklash (o'chirilganlardan so'ng)
     let fresh = await apiGet(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`);
     if (!Array.isArray(fresh)) fresh = [];
 
-    // INIT qatorini filtrlash
     STATE.products = fresh.filter(p => p.id && p.id !== 'INIT' && p.title && p.title !== 'INIT');
     STATE.filtered = [...STATE.products];
     renderProducts(STATE.products);
@@ -329,7 +324,6 @@ async function loadProducts() {
   }
 }
 
-/* Muddati o'tgan mahsulotlarni o'chirish */
 async function autoDeleteExpired(products) {
   const now = Date.now();
   const toDelete = products.filter(p => {
@@ -344,11 +338,10 @@ async function autoDeleteExpired(products) {
       await fetch(`${CFG.SHEETDB}/id/${encodeURIComponent(p.id)}?sheet=${CFG.SHEET_PRODUCTS}`, {
         method: 'DELETE'
       });
-    } catch(e) { /* o'chirish xatosi — davom et */ }
+    } catch(e) {}
   }
 }
 
-/* Mahsulotlar ro'yxatini render qilish */
 function renderProducts(products) {
   const grid = document.getElementById('productGrid');
   if (!products || products.length === 0) {
@@ -406,15 +399,6 @@ function applyFilters() {
   renderProducts(STATE.filtered);
 }
 
-/* Search toggle */
-document.getElementById('searchToggleBtn').addEventListener('click', () => {
-  const bar = document.getElementById('searchBar');
-  bar.classList.toggle('hidden');
-  if (!bar.classList.contains('hidden')) {
-    document.getElementById('searchInput').focus();
-  }
-});
-
 /* ═══════════════════════════════════════════
    MAHSULOT DETAIL
    ═══════════════════════════════════════════ */
@@ -425,7 +409,6 @@ async function openDetail(id) {
   STATE.prevPage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
   navigate('detail', false);
 
-  // Sotuvchi profilini yuklash
   let sellerProfile = null;
   try {
     const sd = await apiGet(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(p.user_id)}&sheet=${CFG.SHEET_PROFILES}`);
@@ -444,14 +427,11 @@ async function openDetail(id) {
   const sellerEmoji = sellerProfile?.emoji || '👤';
   const sellerCity  = sellerProfile?.shahar || '';
 
-  // Sotuvchi telefon raqami — faqat o'ziga ko'rinadi
   const myUid = String(STATE.tgUser?.id || '');
   const isOwner = p.user_id === myUid;
   const phoneHTML = isOwner && p.phone
     ? `<div class="seller-phone">📞 ${esc(p.phone)}</div>` : '';
 
-  // Telegram chat tugmasi — username o'rniga bot orqali
-  // Foydalanuvchining username-i boshqa odamga ko'rinmaydi
   const contactBtns = isOwner
     ? `<p style="color:var(--tg-hint);font-size:0.9rem;text-align:center">Bu sizning mahsulotingiz</p>`
     : `
@@ -459,8 +439,6 @@ async function openDetail(id) {
       <a href="https://t.me/${esc(sellerProfile?.username || '')}" target="_blank" class="btn-tg" id="tgChatBtn" style="display:none">💬 Telegram orqali yozish</a>
     `;
 
-  // Telegram chat tugmasi: username bor bo'lsa, ko'rsat
-  // Ammo username boshqa sahifada ko'rsatilmaydi — faqat link ishlatiladi
   document.getElementById('detailContent').innerHTML = `
     ${imgHTML}
     <div class="detail-card">
@@ -489,7 +467,6 @@ async function openDetail(id) {
     </div>
   `;
 
-  // Telegram chat tugmasi: faqat username mavjud bo'lsa va o'zi bo'lmasa
   if (!isOwner && sellerProfile?.username) {
     const tgBtn = document.getElementById('tgChatBtn');
     if (tgBtn) {
@@ -502,18 +479,6 @@ async function openDetail(id) {
 /* ═══════════════════════════════════════════
    MAHSULOT QO'SHISH
    ═══════════════════════════════════════════ */
-document.getElementById('prodImgInput').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('prodImgPreview').src = e.target.result;
-    document.getElementById('imgPreviewWrap').classList.remove('hidden');
-    document.getElementById('uploadZone').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-});
-
 function removeProductImage() {
   document.getElementById('prodImgInput').value = '';
   document.getElementById('prodImgPreview').src = '';
@@ -544,7 +509,6 @@ async function addProduct() {
   btn.textContent = 'Rasm yuklanmoqda...';
 
   try {
-    // 1. Rasmni ImgBB-ga yuklash (base64)
     const base64 = await fileToBase64(file);
     const fd = new FormData();
     fd.append('key', CFG.IMGBB_KEY);
@@ -556,7 +520,6 @@ async function addProduct() {
     if (!imgData.success) throw new Error('ImgBB: ' + (imgData.error?.message || 'Xato'));
     const imgUrl = imgData.data.url;
 
-    // 2. SheetDB-ga yozish
     btn.textContent = 'Saqlanmoqda...';
     const uid = String(STATE.tgUser.id);
     const prodId = `P${Date.now()}`;
@@ -577,7 +540,6 @@ async function addProduct() {
       }]
     });
 
-    // 3. Formani tozalash
     ['prodTitle','prodPrice','prodLocation','prodDesc','prodPhone'].forEach(id => {
       document.getElementById(id).value = '';
     });
@@ -643,15 +605,12 @@ async function deleteMyProduct(id) {
 /* ═══════════════════════════════════════════
    YORDAMCHI FUNKSIYALAR
    ═══════════════════════════════════════════ */
-
-/* API GET */
 async function apiGet(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error('GET ' + res.status);
   return res.json();
 }
 
-/* API POST */
 async function apiPost(url, body) {
   const res = await fetch(url, {
     method: 'POST',
@@ -662,7 +621,6 @@ async function apiPost(url, body) {
   return res.json();
 }
 
-/* Faylni base64-ga o'girish */
 function fileToBase64(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -672,14 +630,12 @@ function fileToBase64(file) {
   });
 }
 
-/* Narxni formatlash */
 function fmtPrice(val) {
   const n = parseFloat(val);
   if (isNaN(n)) return val || '—';
   return n.toLocaleString('uz-UZ');
 }
 
-/* Sanani chiroyli ko'rsatish */
 function fmtDate(iso) {
   if (!iso) return '';
   try {
@@ -687,7 +643,6 @@ function fmtDate(iso) {
   } catch(e) { return iso; }
 }
 
-/* Necha kun qolganini hisoblash */
 function getDaysLeft(createdAt) {
   if (!createdAt) return CFG.EXPIRE_DAYS;
   const created = new Date(createdAt).getTime();
@@ -696,19 +651,16 @@ function getDaysLeft(createdAt) {
   return Math.max(0, Math.ceil(CFG.EXPIRE_DAYS - elapsed));
 }
 
-/* Kategoriya emoji */
 function getCatEmoji(cat) {
   const map = { electronics:'📱', clothes:'👗', home:'🏠', cars:'🚗', food:'🍎', other:'📦' };
   return map[cat] || '📦';
 }
 
-/* XSS himoya */
 function esc(str) {
   return String(str || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* Status xabar */
 function showMsg(elId, msg, type) {
   const el = document.getElementById(elId);
   if (!el) return;
