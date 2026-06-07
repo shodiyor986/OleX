@@ -6,7 +6,589 @@
   <title>BozorUZ</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dez.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Splash Screen */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s;
+    }
+    #splash.fade-out { opacity: 0; pointer-events: none; }
+    .splash-logo { text-align: center; color: white; }
+    .splash-icon { font-size: 4rem; display: block; margin-bottom: 12px; animation: bounce 1s infinite alternate; }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    .splash-logo h1 { font-size: 2.2rem; font-weight: 800; }
+    .splash-logo p { opacity: 0.9; margin-top: 8px; }
+    .splash-loader { margin-top: 40px; width: 180px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; }
+    .splash-bar { height: 100%; width: 0; background: white; border-radius: 4px; animation: load 1.8s ease forwards; }
+    @keyframes load { to { width: 100%; } }
+
+    /* No Username Screen */
+    #noUsernameScreen {
+      position: fixed;
+      inset: 0;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .nu-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 340px;
+    }
+    .nu-icon { font-size: 3rem; display: block; margin-bottom: 16px; }
+    .nu-card h2 { font-size: 1.3rem; margin-bottom: 10px; color: #1a1a1a; }
+    .nu-card p { color: #666; margin-bottom: 12px; line-height: 1.5; }
+    .nu-hint { background: #fef3c7; color: #92400e; padding: 10px; border-radius: 10px; font-size: 0.85rem; }
+
+    /* App Container */
+    #app {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f5f5f5;
+    }
+
+    /* Top Bar */
+    #topbar {
+      background: white;
+      border-bottom: 1px solid #e5e5e5;
+      flex-shrink: 0;
+    }
+    .topbar-inner {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+    .logo-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f97316;
+    }
+    .topbar-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      background: #f5f5f5;
+      border: none;
+      border-radius: 10px;
+      width: 38px;
+      height: 38px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .search-bar {
+      padding: 8px 16px 12px;
+      background: white;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: #f97316; }
+
+    /* Page Container */
+    #pageContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      padding-bottom: 80px;
+    }
+
+    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section Header */
+    .section-header { margin-bottom: 16px; }
+    .section-header h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #1a1a1a; }
+    .page-header h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .filter-tab {
+      padding: 6px 14px;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #666;
+    }
+    .filter-tab.active {
+      background: #f97316;
+      border-color: #f97316;
+      color: white;
+    }
+
+    /* Product Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.1s;
+      position: relative;
+    }
+    .product-card:active { transform: scale(0.97); }
+    .card-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      background: #f5f5f5;
+    }
+    .card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    .card-body { padding: 8px 10px 10px; }
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #1a1a1a;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .card-price { font-size: 0.95rem; font-weight: 800; color: #f97316; }
+    .card-location { font-size: 0.7rem; color: #999; margin-top: 2px; }
+    .card-sale-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #10b981;
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .card-expired-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #ef4444;
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* Loading State */
+    .loading-state {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+    .form-card h3 { font-size: 1rem; margin-bottom: 16px; color: #1a1a1a; }
+    .field-group { margin-bottom: 14px; }
+    .field-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .field-group input,
+    .field-group textarea,
+    .field-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      background: white;
+      color: #1a1a1a;
+      outline: none;
+    }
+    .field-group input:focus,
+    .field-group textarea:focus,
+    .field-group select:focus { border-color: #f97316; }
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed #f97316;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      background: #fff7ed;
+      cursor: pointer;
+    }
+    .upload-zone span { color: #f97316; font-weight: 600; }
+    #imgPreviewWrap {
+      position: relative;
+      margin-top: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #prodImgPreview {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+    }
+    .remove-img-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    /* Toggle Switch */
+    .sale-toggle-wrap { margin-bottom: 16px; }
+    .toggle-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+    }
+    .toggle input { display: none; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 26px;
+      cursor: pointer;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked ~ .slider { background: #10b981; }
+    .toggle input:checked ~ .slider::before { transform: translateX(20px); }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-primary:active { opacity: 0.9; }
+
+    .btn-green {
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    .btn-tg {
+      background: #229ED9;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      margin-top: 8px;
+    }
+
+    /* Profile Hero */
+    .profile-hero {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      color: white;
+    }
+    .profile-avatar {
+      width: 70px;
+      height: 70px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    .profile-info h2 { font-size: 1.1rem; margin-bottom: 4px; }
+    .profile-uname { font-size: 0.8rem; opacity: 0.9; }
+
+    /* Emoji Grid */
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .emoji-item {
+      aspect-ratio: 1;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emoji-item.selected { border: 2px solid #f97316; background: #fff7ed; }
+
+    /* My Products */
+    .my-products-section { margin-top: 8px; }
+    .my-products-section h3 { font-size: 1rem; margin-bottom: 12px; color: #1a1a1a; }
+    .my-prod-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .my-prod-days {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+    .delete-prod-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* Detail Page */
+    .detail-back { margin-bottom: 12px; }
+    .back-btn {
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .detail-img {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .detail-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .detail-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .detail-price { font-size: 1.5rem; font-weight: 800; color: #f97316; margin-bottom: 10px; }
+    .detail-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .badge-cat { background: #dbeafe; color: #1e40af; }
+    .badge-loc { background: #f3f4f6; color: #374151; }
+    .badge-sale { background: #d1fae5; color: #065f46; }
+    .badge-sold { background: #fee2e2; color: #991b1b; }
+    .detail-desc-title { font-size: 0.7rem; font-weight: 700; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+    .detail-desc { font-size: 0.9rem; line-height: 1.5; color: #1a1a1a; }
+    .detail-meta { font-size: 0.7rem; color: #999; margin-top: 12px; }
+
+    .contact-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .contact-card h3 { font-size: 0.75rem; color: #666; margin-bottom: 12px; text-transform: uppercase; }
+    .seller-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .seller-avatar {
+      width: 48px;
+      height: 48px;
+      background: #f5f5f5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .seller-name { font-weight: 700; margin-bottom: 2px; }
+    .seller-city { font-size: 0.75rem; color: #666; }
+    .seller-phone { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .contact-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+    /* Bottom Navigation */
+    #bottomNav {
+      height: 65px;
+      background: white;
+      border-top: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-shrink: 0;
+      padding: 8px 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 10px;
+      color: #999;
+      font-size: 0.7rem;
+    }
+    .nav-btn span:first-child { font-size: 1.3rem; }
+    .nav-btn.active { color: #f97316; }
+    .add-btn-nav {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white !important;
+      padding: 8px 16px;
+      border-radius: 30px;
+    }
+    .add-btn-nav span:first-child { font-size: 1.5rem; }
+
+    /* Status Messages */
+    .status-msg {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .status-msg.success { background: #d1fae5; color: #065f46; }
+    .status-msg.error { background: #fee2e2; color: #991b1b; }
+
+    .empty-my {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 30px;
+      color: #999;
+    }
+  </style>
 </head>
 <body>
 
@@ -58,7 +640,7 @@
         </div>
       </div>
       <div id="productGrid" class="product-grid">
-        <div class="loading-state">Yuklanmoqda...</div>
+        <div class="loading-state">⏳ Yuklanmoqda...</div>
       </div>
     </div>
 
@@ -129,7 +711,7 @@
         <div class="profile-avatar" id="profileAvatar">😊</div>
         <div class="profile-info">
           <h2 id="profileName">Yuklanmoqda...</h2>
-          <p id="profileUsername"></p>
+          <p id="profileUsername" class="profile-uname"></p>
         </div>
       </div>
       <div class="form-card">
@@ -186,6 +768,600 @@
   </nav>
 </div>
 
-<script src="bek.js"></script>
+<script>
+"use strict";
+
+const CFG = {
+  SHEETDB: 'https://sheetdb.io/api/v1/ismqzmra83a4l',
+  IMGBB_KEY: '786b6ed20a17f40a8a6d037aef43fdc7',
+  EXPIRE_DAYS: 7
+};
+
+const EMOJIS = ['😊', '😎', '🤩', '🥳', '😄', '🤗'];
+
+const CAT_LABELS = {
+  electronics: '📱 Elektronika',
+  clothes: '👗 Kiyim',
+  home: '🏠 Uy',
+  cars: '🚗 Avto',
+  food: '🍎 Oziq-ovqat',
+  other: '📦 Boshqa'
+};
+
+let STATE = {
+  tgUser: null,
+  profile: null,
+  products: [],
+  filtered: [],
+  currentCat: 'all',
+  selectedEmoji: '😊',
+  prevPage: 'home'
+};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const searchToggleBtn = document.getElementById('searchToggleBtn');
+  if (searchToggleBtn) {
+    searchToggleBtn.addEventListener('click', () => {
+      document.getElementById('searchBar').classList.toggle('hidden');
+    });
+  }
+
+  const prodImgInput = document.getElementById('prodImgInput');
+  if (prodImgInput) {
+    prodImgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('prodImgPreview').src = e.target.result;
+          document.getElementById('imgPreviewWrap').classList.remove('hidden');
+          document.getElementById('uploadZone').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  await new Promise(r => setTimeout(r, 1900));
+  const splash = document.getElementById('splash');
+  if (splash) {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.classList.add('hidden'), 500);
+  }
+
+  const tgUser = tg?.initDataUnsafe?.user || { id: 'demo_' + Date.now(), username: 'demo_user', first_name: 'Demo', last_name: 'User' };
+  STATE.tgUser = tgUser;
+
+  if (STATE.tgUser.username) {
+    document.getElementById('app').classList.remove('hidden');
+    buildEmojiGrid();
+    await loadProfile();
+    await loadProducts();
+  } else {
+    document.getElementById('noUsernameScreen').classList.remove('hidden');
+  }
+});
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('GET ' + res.status);
+  return res.json();
+}
+
+async function apiPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('POST ' + res.status);
+  return res.json();
+}
+
+function navigate(pageName, savePrev = true) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.toggle('active', p.id === `page-${pageName}`);
+    p.classList.toggle('hidden', p.id !== `page-${pageName}`);
+  });
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === pageName);
+  });
+  
+  if (savePrev) STATE.prevPage = pageName;
+  
+  if (pageName === 'home') {
+    renderProducts(STATE.filtered.length ? STATE.filtered : STATE.products);
+  }
+  if (pageName === 'profile') {
+    renderProfile();
+    renderMyProducts();
+  }
+}
+
+function navigateToAdd() {
+  if (!STATE.tgUser?.username) {
+    showMsg('addStatus', '❌ Mahsulot qo\'shish uchun Telegram username kerak!', 'error');
+    return;
+  }
+  navigate('add');
+}
+
+function goBack() {
+  navigate(STATE.prevPage || 'home', false);
+}
+
+async function loadProfile() {
+  const uid = String(STATE.tgUser.id);
+  try {
+    const data = await apiGet(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(uid)}&sheet=Profillar`);
+    if (Array.isArray(data) && data.length > 0) {
+      STATE.profile = data[0];
+      STATE.selectedEmoji = data[0].emoji || '😊';
+    } else {
+      STATE.profile = {
+        user_id: uid,
+        username: STATE.tgUser.username || '',
+        ism: STATE.tgUser.first_name || '',
+        familya: STATE.tgUser.last_name || '',
+        telefon: '',
+        shahar: '',
+        emoji: '😊'
+      };
+    }
+  } catch(e) {
+    console.error('loadProfile:', e);
+    STATE.profile = {
+      user_id: uid,
+      username: STATE.tgUser.username || '',
+      ism: STATE.tgUser.first_name || '',
+      familya: STATE.tgUser.last_name || '',
+      telefon: '',
+      shahar: '',
+      emoji: '😊'
+    };
+  }
+}
+
+function renderProfile() {
+  if (!STATE.profile) return;
+  
+  document.getElementById('profileAvatar').textContent = STATE.profile.emoji || '😊';
+  document.getElementById('profileName').textContent = 
+    [STATE.profile.ism, STATE.profile.familya].filter(Boolean).join(' ') || 'Ism kiritilmagan';
+  document.getElementById('profileUsername').textContent = STATE.profile.username ? `@${STATE.profile.username}` : '';
+  
+  document.getElementById('pfIsm').value = STATE.profile.ism || '';
+  document.getElementById('pfFamilya').value = STATE.profile.familya || '';
+  document.getElementById('pfTelefon').value = STATE.profile.telefon || '';
+  document.getElementById('pfShahar').value = STATE.profile.shahar || '';
+  
+  STATE.selectedEmoji = STATE.profile.emoji || '😊';
+  highlightEmoji(STATE.selectedEmoji);
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saqlanmoqda...';
+  
+  const uid = String(STATE.tgUser.id);
+  const payload = {
+    user_id: uid,
+    username: STATE.tgUser.username || '',
+    ism: document.getElementById('pfIsm').value.trim(),
+    familya: document.getElementById('pfFamilya').value.trim(),
+    telefon: document.getElementById('pfTelefon').value.trim(),
+    shahar: document.getElementById('pfShahar').value.trim(),
+    emoji: STATE.selectedEmoji,
+    updated_at: new Date().toISOString()
+  };
+  
+  try {
+    const existing = await apiGet(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(uid)}&sheet=Profillar`);
+    
+    if (Array.isArray(existing) && existing.length > 0) {
+      await fetch(`${CFG.SHEETDB}/user_id/${encodeURIComponent(uid)}?sheet=Profillar`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: payload })
+      });
+    } else {
+      await apiPost(`${CFG.SHEETDB}?sheet=Profillar`, { data: [payload] });
+    }
+    
+    STATE.profile = payload;
+    renderProfile();
+    showMsg('profileStatus', '✅ Profil saqlandi!', 'success');
+  } catch(e) {
+    showMsg('profileStatus', '❌ Xatolik: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Saqlash ✅';
+  }
+}
+
+function buildEmojiGrid() {
+  const grid = document.getElementById('emojiGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  
+  EMOJIS.forEach(em => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-item';
+    btn.textContent = em;
+    btn.onclick = () => {
+      STATE.selectedEmoji = em;
+      highlightEmoji(em);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function highlightEmoji(em) {
+  document.querySelectorAll('.emoji-item').forEach(el => {
+    el.classList.toggle('selected', el.textContent === em);
+  });
+}
+
+async function loadProducts() {
+  const grid = document.getElementById('productGrid');
+  if (grid) grid.innerHTML = '<div class="loading-state">⏳ Yuklanmoqda...</div>';
+  
+  try {
+    let data = await apiGet(`${CFG.SHEETDB}?sheet=Mahsulotlar`);
+    if (!Array.isArray(data)) data = [];
+    
+    data = data.filter(p => p.id && p.id !== 'INIT' && p.title && p.title !== 'INIT');
+    
+    const now = Date.now();
+    const toDelete = data.filter(p => {
+      if (!p.created_at) return false;
+      const created = new Date(p.created_at).getTime();
+      return !isNaN(created) && (now - created) > CFG.EXPIRE_DAYS * 24 * 60 * 60 * 1000;
+    });
+    
+    for (const p of toDelete) {
+      try {
+        await fetch(`${CFG.SHEETDB}/id/${encodeURIComponent(p.id)}?sheet=Mahsulotlar`, { method: 'DELETE' });
+      } catch(e) {}
+    }
+    
+    let fresh = await apiGet(`${CFG.SHEETDB}?sheet=Mahsulotlar`);
+    if (!Array.isArray(fresh)) fresh = [];
+    
+    STATE.products = fresh.filter(p => p.id && p.id !== 'INIT' && p.title && p.title !== 'INIT');
+    STATE.filtered = [...STATE.products];
+    renderProducts(STATE.products);
+  } catch(e) {
+    console.error('loadProducts:', e);
+    if (grid) grid.innerHTML = '<div class="empty-state-full">⚠️ Yuklab bo\'lmadi</div>';
+  }
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+  
+  if (!products || products.length === 0) {
+    grid.innerHTML = '<div class="empty-state-full">🛒 Hali mahsulotlar yo\'q</div>';
+    return;
+  }
+  
+  grid.innerHTML = products.map(p => productCardHTML(p)).join('');
+}
+
+function productCardHTML(p) {
+  const daysLeft = getDaysLeft(p.created_at);
+  const isExpired = daysLeft <= 0;
+  const imgHTML = p.img_url
+    ? `<img class="card-img" src="${escapeHtml(p.img_url)}" alt="${escapeHtml(p.title)}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3E📷%3C/text%3E%3C/svg%3E'">`
+    : `<div class="card-img-placeholder">${getCatEmoji(p.category)}</div>`;
+  
+  const saleBadge = p.for_sale === 'true'
+    ? '<span class="card-sale-badge">Sotuvda</span>'
+    : '';
+  const expBadge = isExpired ? '<span class="card-expired-badge">Muddati o\'tgan</span>' : '';
+  
+  return `
+    <div class="product-card" onclick="openDetail('${escapeHtml(p.id)}')">
+      ${imgHTML}
+      ${saleBadge}${expBadge}
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(p.title)}</div>
+        <div class="card-price">${formatPrice(p.price)} so'm</div>
+        <div class="card-location">📍 ${escapeHtml(p.location || '')}</div>
+      </div>
+    </div>`;
+}
+
+function filterByCategory(btn, cat) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.currentCat = cat;
+  applyFilters();
+}
+
+function filterProducts() {
+  applyFilters();
+}
+
+function applyFilters() {
+  const searchInput = document.getElementById('searchInput');
+  const q = searchInput ? searchInput.value.toLowerCase() : '';
+  const cat = STATE.currentCat;
+  
+  STATE.filtered = STATE.products.filter(p => {
+    const matchCat = cat === 'all' || p.category === cat;
+    const matchQ = !q || 
+      (p.title && p.title.toLowerCase().includes(q)) || 
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      (p.location && p.location.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+  renderProducts(STATE.filtered);
+}
+
+async function openDetail(id) {
+  const p = STATE.products.find(x => x.id === id);
+  if (!p) return;
+  
+  STATE.prevPage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
+  navigate('detail', false);
+  
+  let sellerProfile = null;
+  try {
+    const sd = await apiGet(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(p.user_id)}&sheet=Profillar`);
+    if (Array.isArray(sd) && sd.length > 0) sellerProfile = sd[0];
+  } catch(e) {}
+  
+  const daysLeft = getDaysLeft(p.created_at);
+  const imgHTML = p.img_url 
+    ? `<img class="detail-img" src="${escapeHtml(p.img_url)}" alt="${escapeHtml(p.title)}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3E📷%3C/text%3E%3C/svg%3E'">`
+    : '';
+  
+  const saleBadge = p.for_sale === 'true'
+    ? '<span class="badge badge-sale">✅ Sotuvda</span>'
+    : '<span class="badge badge-sold">❌ Sotilgan</span>';
+  
+  const sellerName = sellerProfile
+    ? [sellerProfile.ism, sellerProfile.familya].filter(Boolean).join(' ') || 'Sotuvchi'
+    : p.user_id || 'Sotuvchi';
+  const sellerEmoji = sellerProfile?.emoji || '👤';
+  const sellerCity = sellerProfile?.shahar || '';
+  
+  const myUid = String(STATE.tgUser?.id || '');
+  const isOwner = p.user_id === myUid;
+  const phoneHTML = isOwner && p.phone
+    ? `<div class="seller-phone">📞 ${escapeHtml(p.phone)}</div>`
+    : '';
+  
+  const contactBtns = isOwner
+    ? '<p style="color:#666;font-size:0.85rem;text-align:center">Bu sizning mahsulotingiz</p>'
+    : `
+      ${p.phone ? `<a href="tel:${escapeHtml(p.phone)}" class="btn-green">📞 Telefon qilish</a>` : ''}
+      ${sellerProfile?.username ? `<a href="https://t.me/${escapeHtml(sellerProfile.username)}" target="_blank" class="btn-tg">💬 Telegramda yozish</a>` : ''}
+    `;
+  
+  const detailContent = document.getElementById('detailContent');
+  if (detailContent) {
+    detailContent.innerHTML = `
+      ${imgHTML}
+      <div class="detail-card">
+        <div class="detail-title">${escapeHtml(p.title)}</div>
+        <div class="detail-price">${formatPrice(p.price)} so'm</div>
+        <div class="detail-badges">
+          <span class="badge badge-cat">${CAT_LABELS[p.category] || p.category || '📦 Boshqa'}</span>
+          <span class="badge badge-loc">📍 ${escapeHtml(p.location || '')}</span>
+          ${saleBadge}
+        </div>
+        <div class="detail-desc-title">Tavsif</div>
+        <div class="detail-desc">${escapeHtml(p.description || 'Tavsif yo\'q')}</div>
+        <div class="detail-meta">🕒 ${daysLeft > 0 ? `${daysLeft} kun qoldi` : 'Muddati o\'tgan'} · ${formatDate(p.created_at)}</div>
+      </div>
+      <div class="contact-card">
+        <h3>Sotuvchi</h3>
+        <div class="seller-info">
+          <div class="seller-avatar">${sellerEmoji}</div>
+          <div>
+            <div class="seller-name">${escapeHtml(sellerName)}</div>
+            ${sellerCity ? `<div class="seller-city">📍 ${escapeHtml(sellerCity)}</div>` : ''}
+            ${phoneHTML}
+          </div>
+        </div>
+        <div class="contact-buttons">${contactBtns}</div>
+      </div>
+    `;
+  }
+}
+
+function removeProductImage() {
+  document.getElementById('prodImgInput').value = '';
+  document.getElementById('prodImgPreview').src = '';
+  document.getElementById('imgPreviewWrap').classList.add('hidden');
+  document.getElementById('uploadZone').style.display = '';
+}
+
+async function addProduct() {
+  const title = document.getElementById('prodTitle').value.trim();
+  const price = document.getElementById('prodPrice').value.trim();
+  const category = document.getElementById('prodCategory').value;
+  const location = document.getElementById('prodLocation').value.trim();
+  const desc = document.getElementById('prodDesc').value.trim();
+  const phone = document.getElementById('prodPhone').value.trim();
+  const forSale = document.getElementById('prodForSale').checked;
+  const file = document.getElementById('prodImgInput').files[0];
+  
+  if (!title) { showMsg('addStatus', '❗ Mahsulot nomini kiriting', 'error'); return; }
+  if (!price) { showMsg('addStatus', '❗ Narxni kiriting', 'error'); return; }
+  if (!category) { showMsg('addStatus', '❗ Kategoriyani tanlang', 'error'); return; }
+  if (!location) { showMsg('addStatus', '❗ Joylashuvni kiriting', 'error'); return; }
+  if (!desc) { showMsg('addStatus', '❗ Tavsif kiriting', 'error'); return; }
+  if (!phone) { showMsg('addStatus', '❗ Telefon raqam kiriting', 'error'); return; }
+  if (!file) { showMsg('addStatus', '❗ Rasm tanlang', 'error'); return; }
+  
+  const btn = document.getElementById('addProductBtn');
+  btn.disabled = true;
+  btn.textContent = 'Rasm yuklanmoqda...';
+  
+  try {
+    const base64 = await fileToBase64(file);
+    const fd = new FormData();
+    fd.append('key', CFG.IMGBB_KEY);
+    fd.append('image', base64);
+    
+    const imgRes = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+    if (!imgRes.ok) throw new Error('Rasm yuklanmadi');
+    const imgData = await imgRes.json();
+    if (!imgData.success) throw new Error(imgData.error?.message || 'Rasm yuklanmadi');
+    const imgUrl = imgData.data.url;
+    
+    btn.textContent = 'Saqlanmoqda...';
+    const uid = String(STATE.tgUser.id);
+    const prodId = 'P' + Date.now();
+    
+    await apiPost(`${CFG.SHEETDB}?sheet=Mahsulotlar`, {
+      data: [{
+        id: prodId,
+        user_id: uid,
+        title: title,
+        price: price,
+        category: category,
+        location: location,
+        description: desc,
+        phone: phone,
+        img_url: imgUrl,
+        for_sale: String(forSale),
+        created_at: new Date().toISOString()
+      }]
+    });
+    
+    document.getElementById('prodTitle').value = '';
+    document.getElementById('prodPrice').value = '';
+    document.getElementById('prodLocation').value = '';
+    document.getElementById('prodDesc').value = '';
+    document.getElementById('prodPhone').value = '';
+    document.getElementById('prodCategory').value = '';
+    document.getElementById('prodForSale').checked = true;
+    removeProductImage();
+    
+    showMsg('addStatus', '✅ Mahsulot qo\'shildi!', 'success');
+    await loadProducts();
+    setTimeout(() => navigate('home'), 1500);
+  } catch(e) {
+    showMsg('addStatus', '❌ ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Mahsulot qo\'shish';
+  }
+}
+
+function renderMyProducts() {
+  const uid = String(STATE.tgUser?.id || '');
+  const mine = STATE.products.filter(p => p.user_id === uid);
+  const grid = document.getElementById('myProductGrid');
+  
+  if (!grid) return;
+  
+  if (!mine.length) {
+    grid.innerHTML = '<div class="empty-my">Hali mahsulot yo\'q</div>';
+    return;
+  }
+  
+  grid.innerHTML = mine.map(p => {
+    const daysLeft = getDaysLeft(p.created_at);
+    const imgHTML = p.img_url
+      ? `<img class="card-img" src="${escapeHtml(p.img_url)}" alt="" loading="lazy" style="aspect-ratio:4/3">`
+      : `<div class="card-img-placeholder" style="aspect-ratio:4/3">${getCatEmoji(p.category)}</div>`;
+    
+    return `
+      <div class="my-prod-card" onclick="openDetail('${escapeHtml(p.id)}')">
+        ${imgHTML}
+        <span class="my-prod-days">${daysLeft > 0 ? daysLeft + 'k' : '❌'}</span>
+        <button class="delete-prod-btn" onclick="event.stopPropagation(); deleteMyProduct('${escapeHtml(p.id)}')">🗑</button>
+        <div class="card-body" style="padding:7px 8px">
+          <div class="card-title" style="font-size:0.8rem">${escapeHtml(p.title)}</div>
+          <div class="card-price" style="font-size:0.85rem">${formatPrice(p.price)} so'm</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function deleteMyProduct(id) {
+  if (!confirm('Mahsulotni o\'chirishni tasdiqlaysizmi?')) return;
+  
+  try {
+    await fetch(`${CFG.SHEETDB}/id/${encodeURIComponent(id)}?sheet=Mahsulotlar`, { method: 'DELETE' });
+    await loadProducts();
+    renderMyProducts();
+    showMsg('profileStatus', '✅ Mahsulot o\'chirildi', 'success');
+  } catch(e) {
+    alert('O\'chirishda xatolik: ' + e.message);
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('Faylni o\'qib bo\'lmadi'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function formatPrice(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return val || '0';
+  return n.toLocaleString('uz-UZ');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch(e) {
+    return iso;
+  }
+}
+
+function getDaysLeft(createdAt) {
+  if (!createdAt) return CFG.EXPIRE_DAYS;
+  const created = new Date(createdAt).getTime();
+  if (isNaN(created)) return CFG.EXPIRE_DAYS;
+  const elapsed = (Date.now() - created) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.ceil(CFG.EXPIRE_DAYS - elapsed));
+}
+
+function getCatEmoji(cat) {
+  const map = { electronics: '📱', clothes: '👗', home: '🏠', cars: '🚗', food: '🍎', other: '📦' };
+  return map[cat] || '📦';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showMsg(elId, msg, type) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `status-msg ${type}`;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+</script>
 </body>
 </html>
