@@ -90,8 +90,8 @@
 </div>
 
 <script>
-    // ⚠️ BU YERGA O'ZINGIZNING SHEETDB API URL'INGIZNI QO'YING
-    const API_URL = 'https://sheetdb.io/api/v1/YOUR_API_ID';
+    // Sizning shaxsiy SheetDB API URL manzilingiz ulandi:
+    const API_URL = 'https://sheetdb.io/api/v1/li6903lb9hwm2';
 
     // 1. Ma'lumotlarni bazadan olish (GET so'rovi)
     async function fetchMessages() {
@@ -106,7 +106,7 @@
                 return;
             }
 
-            // Eng yangi xabarlarni tepada ko'rsatish uchun teskari tartiblaymiz
+            // Eng yangi xabarlarni tepada ko'rsatish
             data.reverse().forEach(item => {
                 const li = document.createElement('li');
                 li.className = 'data-item';
@@ -127,7 +127,6 @@
         const nameInput = document.getElementById('nameInput');
         const messageInput = document.getElementById('messageInput');
 
-        // SheetDB ma'lumotni mana shu formatda qabul qiladi
         const newData = {
             data: [
                 {
@@ -138,7 +137,6 @@
             ]
         };
 
-        // Tugmani vaqtincha faolsizlantirish
         submitBtn.disabled = true;
         submitBtn.innerText = 'Yuborilmoqda...';
 
@@ -152,8 +150,8 @@
             });
 
             if (response.ok) {
-                messageInput.value = ''; // Matn maydonini tozalash
-                await fetchMessages();  // Ro'yxatni qayta yangilash
+                messageInput.value = ''; 
+                await fetchMessages();  
             } else {
                 alert('Xabarni yuborishda xatolik bo\'ldi.');
             }
@@ -166,7 +164,7 @@
         }
     });
 
-    // Sahifa ilk bor yuklanganda ma'lumotlarni avtomatik olib kelish
+    // Sahifa yuklanganda ma'lumotlarni avtomatik olib kelish
     window.onload = fetchMessages;
 </script>
 </body>
