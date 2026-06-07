@@ -4,13 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BozorUZ</title>
-
-  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="dez.css">
 </head>
 <body>
@@ -48,7 +43,6 @@
         <button class="icon-btn" onclick="navigate('profile')" title="Profil">👤</button>
       </div>
     </div>
-    <!-- Search bar (hidden by default) -->
     <div class="search-bar hidden" id="searchBar">
       <input type="text" id="searchInput" placeholder="Mahsulot qidiring..." oninput="filterProducts()">
     </div>
@@ -138,7 +132,6 @@
             </label>
           </label>
         </div>
-
         <button class="btn-primary btn-full" id="addProductBtn" onclick="addProduct()">
           Mahsulot joylash 🚀
         </button>
@@ -155,8 +148,6 @@
           <p id="profileUsername" class="profile-uname"></p>
         </div>
       </div>
-
-      <!-- Profile Edit Form -->
       <div class="form-card" id="profileForm">
         <h3>👤 Shaxsiy ma'lumotlar</h3>
         <div class="field-group">
@@ -184,8 +175,6 @@
         </button>
         <div id="profileStatus" class="status-msg hidden"></div>
       </div>
-
-      <!-- My Products -->
       <div class="my-products-section">
         <h3>🛍️ Mening mahsulotlarim</h3>
         <div id="myProductGrid" class="product-grid small-grid">
@@ -220,7 +209,7 @@
     </button>
   </nav>
 
-</div><!-- #app -->
+</div>
 
 <script src="bek.js"></script>
 </body>
