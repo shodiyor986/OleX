@@ -20,7 +20,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
         }
         h2, h3 { margin-top: 0; color: #111; }
-        input, textarea, button {
+        input[type="text"], textarea, button {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
@@ -30,6 +30,42 @@
             font-size: 15px;
         }
         textarea { height: 100px; resize: vertical; }
+        
+        /* 📸 Yangi chiroyli rasm yuklash maydoni */
+        .upload-zone {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            margin: 12px 0;
+            transition: background 0.2s;
+        }
+        .upload-zone:hover {
+            background: #f0f7ff;
+        }
+        .upload-zone p {
+            margin: 0;
+            color: #007bff;
+            font-weight: 500;
+        }
+        #rasm { display: none; } /* Eski xunuk tugmani yashiramiz */
+
+        /* 🖼️ Tanlangan rasmni yuborishdan oldin ko'rish (Preview) */
+        .preview-container {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+            position: relative;
+        }
+        .preview-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
         button {
             background-color: #007bff;
             color: white;
@@ -47,9 +83,9 @@
             font-size: 14px;
         }
         .refresh-btn:hover { background-color: #5a6268; }
-        .lenta-container {
-            margin-top: 20px;
-        }
+        .lenta-container { margin-top: 20px; }
+        
+        /* 📰 Kelgan postlar dizayni */
         .post {
             background: #f8f9fa;
             padding: 18px;
@@ -78,10 +114,14 @@
         <input type="text" id="ism" placeholder="Ismingiz" required>
         <textarea id="xabar" placeholder="Fikringiz yoki xabaringiz..." required></textarea>
         
-        <div style="margin: 10px 0 5px 0;">
-            <label style="font-size: 14px; color: #555; font-weight: 500;">Rasm biriktirish (ixtiyoriy):</label>
+        <div class="upload-zone" onclick="document.getElementById('rasm').click()">
+            <p>🖼️ Rasm yuklash uchun bosing</p>
+            <input type="file" id="rasm" accept="image/*">
         </div>
-        <input type="file" id="rasm" accept="image/*">
+
+        <div class="preview-container" id="previewContainer">
+            <img id="imagePreview" src="" alt="Oldindan ko'rish">
+        </div>
         
         <button type="submit" id="btn">Yuborish 🚀</button>
     </form>
@@ -97,10 +137,23 @@
 </div>
 
 <script>
-    // Siz taqdim etgan shaxsiy Apps Script API manzili ulandi:
+    // Sizning shaxsiy Apps Script API manzilingiz:
     const API_URL = 'https://script.google.com/macros/s/AKfycbyjK0Ecnp8vk8OlB39w2D0OxoSm_QFoBFdcoEAsinXW1JQvjJeLOgOzqPaews2iQeRm/exec';
 
-    // Rasmni fonda yuborish uchun Base64 formatga o'tkazish funksiyasi
+    // Rasm tanlanganda uni ekranda ko'rsatish (Preview funksiyasi)
+    document.getElementById('rasm').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Rasmni fonda yuborish uchun Base64 formatga o'tkazish
     const toBase64 = file => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -138,6 +191,7 @@
             
             if (result.status === 'success') {
                 document.getElementById('uploadForm').reset();
+                document.getElementById('previewContainer').style.display = 'none'; // Preview yopish
                 await yuklashLenta(); // Lentani yangilash
             } else {
                 alert('Xatolik yuz berdi: ' + result.message);
@@ -164,11 +218,10 @@
                 return;
             }
 
-            // Eng yangi xabarlarni yuqorida ko'rsatish uchun teskari tartiblaymiz
             data.reverse().forEach(item => {
                 let rasmHTML = '';
 
-                // Google Drive havolasidan rasm ID-sini ajratib olib vizual ko'rsatish
+                // Google Drive havolasidan rasm ID-sini ajratib olib, to'g'ridan-to'g'ri render qilish
                 if (item.rasm_link) {
                     let fileId = '';
                     const matches = item.rasm_link.match(/\/d\/([^/]+)/) || item.rasm_link.match(/id=([^&]+)/);
@@ -177,7 +230,6 @@
                     }
 
                     if (fileId) {
-                        // Google Drive rasmini to'g'ridan-to'g'ri render qiluvchi barqaror CDN havola
                         const directImageUrl = `https://docs.google.com/uc?export=view&id=${fileId}`;
                         rasmHTML = `<img src="${directImageUrl}" alt="Post rasm">`;
                     }
@@ -198,7 +250,6 @@
         }
     }
 
-    // Sahifa birinchi marta ochilganda lentani avtomatik yuklash
     window.onload = yuklashLenta;
 </script>
 </body>
