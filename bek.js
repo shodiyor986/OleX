@@ -16,21 +16,18 @@ const CFG = {
 
 /* ── EMOJI RO'YXATI ── */
 const EMOJIS = [
-  '😊','😎','🤩','🥳','😄','🤗',
-  '🦁','🐯','🦊','🐺','🐻','🐼',
-  '🚀','⚡','🔥','💎','🌟','🎯',
-  '🏆','🎮','🎸','🎨','📚','💡',
-  '🌍','🌺','🍀','🌈','🦋','🐉'
+  '😊','😎','🤩','🥳','😄','🤗'
 ];
 
 /* ── KATEGORIYA NOMI ── */
 const CAT_LABELS = {
   electronics: '📱 Elektronika',
+  livestock:   '🐄 chorvachilik',
   clothes:     '👗 Kiyim',
   home:        '🏠 Uy jihozlari',
   cars:        '🚗 Avto',
   food:        '🍎 Oziq-ovqat',
-  other:       '📦 Boshqa'
+  other:       '📦 Boshqa',
 };
 
 /* ── HOLAT ── */
