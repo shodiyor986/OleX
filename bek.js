@@ -381,8 +381,10 @@ function highlightEmoji(em) {
    MAHSULOTLAR — YUKLASH
    ═══════════════════════════════════════════ */
 async function loadProducts() {
-  document.getElementById('productGrid').innerHTML =
-    '<div class="loading-state"><div class="spinner"></div><p>Yuklanmoqda...</p></div>';
+  const grid = document.getElementById('productGrid');
+  if (grid) {
+    grid.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Yuklanmoqda...</p></div>';
+  }
   try {
     let data = await apiGet(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`);
     if (!Array.isArray(data)) data = [];
@@ -396,8 +398,9 @@ async function loadProducts() {
     STATE.filtered = [...STATE.products];
     renderProducts(STATE.products);
   } catch(e) {
-    document.getElementById('productGrid').innerHTML =
-      '<div class="empty-state-full"><span class="big-emoji">⚠️</span><p>Yuklab bo\'lmadi. Qayta urinib ko\'ring.</p></div>';
+    if (grid) {
+      grid.innerHTML = '<div class="empty-state-full"><span class="big-emoji">⚠️</span><p>Yuklab bo\'lmadi. Qayta urinib ko\'ring.</p></div>';
+    }
   }
 }
 
@@ -421,6 +424,7 @@ async function autoDeleteExpired(products) {
 
 function renderProducts(products) {
   const grid = document.getElementById('productGrid');
+  if (!grid) return;
   if (!products || products.length === 0) {
     grid.innerHTML = '<div class="empty-state-full"><span class="big-emoji">🛒</span><p>Hali mahsulotlar yo\'q</p></div>';
     return;
@@ -451,7 +455,7 @@ function productCardHTML(p) {
 }
 
 /* ═══════════════════════════════════════════
-   FILTER & QIDIRISH (YANGI VERSIYA)
+   FILTER & QIDIRISH
    ═══════════════════════════════════════════ */
 function filterByCategory(btn, cat) {
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -877,24 +881,6 @@ function applyFiltersFromModal() {
     });
   }
   
-  // Saralash select ni yangilash
-  const sortSelect = document.getElementById('sortSelect');
-  if (sortSelect) sortSelect.value = MODAL_FILTERS.sortBy;
-  
-  // Narx inputlarini yangilash
-  const minPriceInput = document.getElementById('minPrice');
-  const maxPriceInput = document.getElementById('maxPrice');
-  if (minPriceInput) minPriceInput.value = MODAL_FILTERS.minPrice;
-  if (maxPriceInput) maxPriceInput.value = MODAL_FILTERS.maxPrice;
-  
-  // Tezkor filtr chiplarini yangilash
-  document.querySelectorAll('.quick-filter-chip').forEach(chip => {
-    chip.classList.remove('active');
-    if (chip.dataset.filter === MODAL_FILTERS.quickFilter) {
-      chip.classList.add('active');
-    }
-  });
-  
   // Filtrlarni qo'llash
   applyAllFilters();
   
@@ -949,8 +935,27 @@ function closeFilterModalOnOverlay(event) {
 }
 
 /* ═══════════════════════════════════════════
-   MAHSULOT DETAIL
+   MAHSULOT DETAIL (TELEFON RAQAM FORMATI TUZATILGAN)
    ═══════════════════════════════════════════ */
+
+// Telefon raqamni formatlash (tel: uchun + qo'shish)
+function formatPhoneForTel(phone) {
+  if (!phone) return '';
+  // Raqamdan barcha bo'shliqlar va tirelarni olib tashlash
+  let cleanPhone = phone.replace(/[\s\-]/g, '');
+  // Faqat raqamlarni olish
+  const digits = cleanPhone.replace(/[^0-9]/g, '');
+  // Agar raqam 998 bilan boshlansa, + qo'shish
+  if (digits.startsWith('998')) {
+    return '+' + digits;
+  }
+  // Agar raqam + bilan boshlanmasa va 998 bilan boshlansa
+  if (!cleanPhone.startsWith('+') && cleanPhone.match(/^998\d{9}$/)) {
+    return '+' + digits;
+  }
+  return cleanPhone;
+}
+
 async function openDetail(id) {
   const p = STATE.products.find(x => x.id === id);
   if (!p) return;
@@ -978,43 +983,50 @@ async function openDetail(id) {
 
   const myUid = String(STATE.tgUser?.id || '');
   const isOwner = p.user_id === myUid;
+  
+  // Telefon raqamni formatlash (tel: uchun + qo'shilgan)
+  const formattedPhone = formatPhoneForTel(p.phone || '');
+  
   const phoneHTML = isOwner && p.phone
     ? `<div class="seller-phone">📞 ${esc(p.phone)}</div>` : '';
 
   const contactBtns = isOwner
     ? `<p style="color:var(--tg-hint);font-size:0.9rem;text-align:center">Bu sizning mahsulotingiz</p>`
     : `
-      <a href="tel:${esc(p.phone || '')}" class="btn-green">📞 Telefon qilish</a>
+      <a href="tel:${formattedPhone}" class="btn-green">📞 Telefon qilish</a>
       <a href="https://t.me/${esc(sellerProfile?.username || '')}" target="_blank" class="btn-tg" id="tgChatBtn" style="display:none">💬 Telegram orqali yozish</a>
     `;
 
-  document.getElementById('detailContent').innerHTML = `
-    ${imgHTML}
-    <div class="detail-card">
-      <div class="detail-title">${esc(p.title)}</div>
-      <div class="detail-price">${fmtPrice(p.price)} so'm</div>
-      <div class="detail-badges">
-        <span class="badge badge-cat">${CAT_LABELS[p.category] || p.category || '📦'}</span>
-        <span class="badge badge-loc">📍 ${esc(p.location || '')}</span>
-        ${saleBadge}
-      </div>
-      <div class="detail-desc-title">Tavsif</div>
-      <div class="detail-desc">${esc(p.description || 'Tavsif yo\'q')}</div>
-      <div class="detail-meta">🕒 ${daysLeft > 0 ? `${daysLeft} kun qoldi` : 'Muddati o\'tgan'} · ${fmtDate(p.created_at)}</div>
-    </div>
-    <div class="contact-card">
-      <h3>Sotuvchi</h3>
-      <div class="seller-info">
-        <div class="seller-avatar">${sellerEmoji}</div>
-        <div>
-          <div class="seller-name">${esc(sellerName)}</div>
-          ${sellerCity ? `<div class="seller-city">📍 ${esc(sellerCity)}</div>` : ''}
-          ${phoneHTML}
+  const detailContent = document.getElementById('detailContent');
+  if (detailContent) {
+    detailContent.innerHTML = `
+      ${imgHTML}
+      <div class="detail-card">
+        <div class="detail-title">${esc(p.title)}</div>
+        <div class="detail-price">${fmtPrice(p.price)} so'm</div>
+        <div class="detail-badges">
+          <span class="badge badge-cat">${CAT_LABELS[p.category] || p.category || '📦'}</span>
+          <span class="badge badge-loc">📍 ${esc(p.location || '')}</span>
+          ${saleBadge}
         </div>
+        <div class="detail-desc-title">Tavsif</div>
+        <div class="detail-desc">${esc(p.description || 'Tavsif yo\'q')}</div>
+        <div class="detail-meta">🕒 ${daysLeft > 0 ? `${daysLeft} kun qoldi` : 'Muddati o\'tgan'} · ${fmtDate(p.created_at)}</div>
       </div>
-      <div class="contact-buttons">${contactBtns}</div>
-    </div>
-  `;
+      <div class="contact-card">
+        <h3>Sotuvchi</h3>
+        <div class="seller-info">
+          <div class="seller-avatar">${sellerEmoji}</div>
+          <div>
+            <div class="seller-name">${esc(sellerName)}</div>
+            ${sellerCity ? `<div class="seller-city">📍 ${esc(sellerCity)}</div>` : ''}
+            ${phoneHTML}
+          </div>
+        </div>
+        <div class="contact-buttons">${contactBtns}</div>
+      </div>
+    `;
+  }
 
   if (!isOwner && sellerProfile?.username) {
     const tgBtn = document.getElementById('tgChatBtn');
