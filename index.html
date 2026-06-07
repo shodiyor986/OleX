@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BozorUZ</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="dez.css">
 </head>
 <body>
 
-<!-- ===== SPLASH SCREEN ===== -->
 <div id="splash">
   <div class="splash-logo">
     <span class="splash-icon">🛍️</span>
@@ -20,41 +19,34 @@
   <div class="splash-loader"><div class="splash-bar"></div></div>
 </div>
 
-<!-- ===== NO USERNAME WARNING ===== -->
 <div id="noUsernameScreen" class="hidden">
   <div class="nu-card">
     <span class="nu-icon">⚠️</span>
     <h2>Username kerak</h2>
     <p>Mahsulot qo'shish uchun Telegram username-ingiz bo'lishi shart.</p>
-    <p class="nu-hint">Telegram → Sozlamalar → Username o'rnating, so'ng qaytib keling.</p>
-    <button class="btn-primary" onclick="window.location.reload()">Qayta tekshirish 🔄</button>
+    <p class="nu-hint">Telegram → Sozlamalar → Username o'rnating</p>
+    <button class="btn-primary" onclick="window.location.reload()">Qayta tekshirish</button>
   </div>
 </div>
 
-<!-- ===== MAIN APP ===== -->
 <div id="app" class="hidden">
-
-  <!-- TOP BAR -->
   <header id="topbar">
     <div class="topbar-inner">
       <span class="logo-text">🛍️ BozorUZ</span>
       <div class="topbar-actions">
-        <button class="icon-btn" id="searchToggleBtn" title="Qidirish">🔍</button>
-        <button class="icon-btn" onclick="navigate('profile')" title="Profil">👤</button>
+        <button class="icon-btn" id="searchToggleBtn">🔍</button>
+        <button class="icon-btn" onclick="navigate('profile')">👤</button>
       </div>
     </div>
     <div class="search-bar hidden" id="searchBar">
-      <input type="text" id="searchInput" placeholder="Mahsulot qidiring..." oninput="filterProducts()">
+      <input type="text" id="searchInput" placeholder="Qidirish..." oninput="filterProducts()">
     </div>
   </header>
 
-  <!-- PAGES -->
   <main id="pageContainer">
-
-    <!-- ===== HOME PAGE ===== -->
     <div id="page-home" class="page active">
       <div class="section-header">
-        <h2>Barcha mahsulotlar</h2>
+        <h2>Mahsulotlar</h2>
         <div class="filter-tabs">
           <button class="filter-tab active" data-cat="all" onclick="filterByCategory(this,'all')">Barchasi</button>
           <button class="filter-tab" data-cat="electronics" onclick="filterByCategory(this,'electronics')">📱 Elektronika</button>
@@ -66,149 +58,132 @@
         </div>
       </div>
       <div id="productGrid" class="product-grid">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Yuklanmoqda...</p>
-        </div>
+        <div class="loading-state">Yuklanmoqda...</div>
       </div>
     </div>
 
-    <!-- ===== ADD PRODUCT PAGE ===== -->
     <div id="page-add" class="page hidden">
       <div class="page-header">
-        <h2>➕ Mahsulot qo'shish</h2>
+        <h2>Yangi mahsulot</h2>
       </div>
       <div class="form-card">
         <div class="field-group">
-          <label>📝 Mahsulot nomi *</label>
-          <input type="text" id="prodTitle" placeholder="Masalan: iPhone 14 Pro" maxlength="80">
+          <label>Mahsulot nomi</label>
+          <input type="text" id="prodTitle" placeholder="Masalan: iPhone 14 Pro">
         </div>
         <div class="field-group">
-          <label>💰 Narxi (so'm) *</label>
-          <input type="number" id="prodPrice" placeholder="500000" min="0">
+          <label>Narxi (so'm)</label>
+          <input type="number" id="prodPrice" placeholder="500000">
         </div>
         <div class="field-group">
-          <label>📦 Kategoriya *</label>
+          <label>Kategoriya</label>
           <select id="prodCategory">
-            <option value="">-- Tanlang --</option>
+            <option value="">Tanlang</option>
             <option value="electronics">📱 Elektronika</option>
-            <option value="clothes">👗 Kiyim-kechak</option>
-            <option value="home">🏠 Uy jihozlari</option>
-            <option value="cars">🚗 Avtomobil</option>
+            <option value="clothes">👗 Kiyim</option>
+            <option value="home">🏠 Uy</option>
+            <option value="cars">🚗 Avto</option>
             <option value="food">🍎 Oziq-ovqat</option>
             <option value="other">📦 Boshqa</option>
           </select>
         </div>
         <div class="field-group">
-          <label>📍 Joylashuv *</label>
-          <input type="text" id="prodLocation" placeholder="Masalan: Toshkent, Chilonzor" maxlength="60">
+          <label>Joylashuv</label>
+          <input type="text" id="prodLocation" placeholder="Toshkent, Chilonzor">
         </div>
         <div class="field-group">
-          <label>📄 Tavsif *</label>
-          <textarea id="prodDesc" placeholder="Mahsulot haqida batafsil yozing..." maxlength="500" rows="3"></textarea>
+          <label>Tavsif</label>
+          <textarea id="prodDesc" rows="3" placeholder="Mahsulot haqida..."></textarea>
         </div>
         <div class="field-group">
-          <label>🖼️ Rasm *</label>
-          <div class="upload-zone" onclick="document.getElementById('prodImgInput').click()" id="uploadZone">
-            <span class="upload-icon">📷</span>
-            <span>Rasm tanlash</span>
+          <label>Rasm</label>
+          <div class="upload-zone" onclick="document.getElementById('prodImgInput').click()">
+            <span>📷 Rasm tanlash</span>
           </div>
           <input type="file" id="prodImgInput" accept="image/*" style="display:none">
           <div id="imgPreviewWrap" class="hidden">
-            <img id="prodImgPreview" src="" alt="">
+            <img id="prodImgPreview" src="">
             <button class="remove-img-btn" onclick="removeProductImage()">✕</button>
           </div>
         </div>
         <div class="field-group">
-          <label>📞 Telefon raqam *</label>
-          <input type="tel" id="prodPhone" placeholder="+998 90 123 45 67" maxlength="20">
+          <label>Telefon</label>
+          <input type="tel" id="prodPhone" placeholder="+998 90 123 45 67">
         </div>
         <div class="sale-toggle-wrap">
           <label class="toggle-label">
-            <span>🏷️ Savdoda (sotuvda)</span>
+            <span>Sotuvda</span>
             <label class="toggle">
               <input type="checkbox" id="prodForSale" checked>
               <span class="slider"></span>
             </label>
           </label>
         </div>
-        <button class="btn-primary btn-full" id="addProductBtn" onclick="addProduct()">
-          Mahsulot joylash 🚀
-        </button>
+        <button class="btn-primary btn-full" onclick="addProduct()">Mahsulot qo'shish</button>
         <div id="addStatus" class="status-msg hidden"></div>
       </div>
     </div>
 
-    <!-- ===== PROFILE PAGE ===== -->
     <div id="page-profile" class="page hidden">
       <div class="profile-hero">
         <div class="profile-avatar" id="profileAvatar">😊</div>
         <div class="profile-info">
           <h2 id="profileName">Yuklanmoqda...</h2>
-          <p id="profileUsername" class="profile-uname"></p>
+          <p id="profileUsername"></p>
         </div>
       </div>
-      <div class="form-card" id="profileForm">
-        <h3>👤 Shaxsiy ma'lumotlar</h3>
+      <div class="form-card">
         <div class="field-group">
-          <label>Ism *</label>
-          <input type="text" id="pfIsm" placeholder="Ismingiz" maxlength="30">
+          <label>Ism</label>
+          <input type="text" id="pfIsm" placeholder="Ismingiz">
         </div>
         <div class="field-group">
           <label>Familiya</label>
-          <input type="text" id="pfFamilya" placeholder="Familiyangiz" maxlength="30">
+          <input type="text" id="pfFamilya" placeholder="Familiyangiz">
         </div>
         <div class="field-group">
           <label>Telefon</label>
-          <input type="tel" id="pfTelefon" placeholder="+998 90 000 00 00" maxlength="20">
+          <input type="tel" id="pfTelefon" placeholder="+998 90 000 00 00">
         </div>
         <div class="field-group">
           <label>Shahar</label>
-          <input type="text" id="pfShahar" placeholder="Toshkent" maxlength="40">
+          <input type="text" id="pfShahar" placeholder="Toshkent">
         </div>
         <div class="field-group">
-          <label>😊 Avatar (emoji tanlang)</label>
+          <label>Avatar emoji</label>
           <div class="emoji-grid" id="emojiGrid"></div>
         </div>
-        <button class="btn-primary btn-full" id="saveProfileBtn" onclick="saveProfile()">
-          Saqlash ✅
-        </button>
+        <button class="btn-primary btn-full" onclick="saveProfile()">Saqlash</button>
         <div id="profileStatus" class="status-msg hidden"></div>
       </div>
       <div class="my-products-section">
-        <h3>🛍️ Mening mahsulotlarim</h3>
-        <div id="myProductGrid" class="product-grid small-grid">
-          <div class="empty-my">Hali mahsulot yo'q</div>
-        </div>
+        <h3>Mening mahsulotlarim</h3>
+        <div id="myProductGrid" class="product-grid"></div>
       </div>
     </div>
 
-    <!-- ===== PRODUCT DETAIL PAGE ===== -->
     <div id="page-detail" class="page hidden">
       <div class="detail-back">
         <button class="back-btn" onclick="goBack()">← Orqaga</button>
       </div>
       <div id="detailContent"></div>
     </div>
-
   </main>
 
-  <!-- BOTTOM NAV -->
   <nav id="bottomNav">
     <button class="nav-btn active" data-page="home" onclick="navigate('home')">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">Bosh sahifa</span>
+      <span>🏠</span>
+      <span>Bosh sahifa</span>
     </button>
-    <button class="nav-btn add-btn-nav" data-page="add" onclick="navigateToAdd()">
-      <span class="nav-icon add-icon">＋</span>
-      <span class="nav-label">Qo'shish</span>
+    <button class="nav-btn add-btn-nav" onclick="navigateToAdd()">
+      <span>＋</span>
+      <span>Qo'shish</span>
     </button>
     <button class="nav-btn" data-page="profile" onclick="navigate('profile')">
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">Profil</span>
+      <span>👤</span>
+      <span>Profil</span>
     </button>
   </nav>
-
 </div>
 
 <script src="bek.js"></script>
