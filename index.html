@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f97316" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f97316" media="(prefers-color-scheme: dark)">
+  <title>OLeX | BozorUZ</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dez.css">
+  <style>
+    /* Qo'shimcha stillar - barcha sahifalarni bog'lash uchun */
+    .nav-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: var(--card-bg);
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+      padding: 8px 12px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.15s;
+      color: var(--tg-hint);
+    }
+    
+    .nav-item.active {
+      color: #f97316;
+      background: rgba(249, 115, 22, 0.1);
+    }
+    
+    .nav-icon {
+      font-size: 1.3rem;
+    }
+    
+    .nav-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    
+    .iframe-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: var(--tg-bg);
+      z-index: 10;
+    }
+    
+    .hidden-page {
+      display: none !important;
+    }
+    
+    .main-content {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 60px;
+      overflow-y: auto;
+      background: var(--tg-bg);
+    }
+    
+    .top-bar {
+      background: var(--card-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #f97316;
+    }
+    
+    .search-btn, .profile-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+    }
+    
+    .search-bar {
+      padding: 8px 16px;
+      background: var(--card-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    
+    .search-bar input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      background: var(--tg-bg);
+      color: var(--tg-text);
+    }
+    
+    .categories {
+      padding: 12px 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+      display: flex;
+      gap: 8px;
+      background: var(--card-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .category-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #e5e7eb;
+      background: var(--card-bg);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--tg-hint);
+    }
+    
+    .category-btn.active {
+      background: #f97316;
+      border-color: #f97316;
+      color: white;
+    }
+    
+    .products-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+    
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    
+    .product-card:active {
+      transform: scale(0.97);
+    }
+    
+    .product-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: var(--tg-secondary);
+    }
+    
+    .product-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      background: var(--tg-secondary);
+    }
+    
+    .product-info {
+      padding: 8px 10px;
+    }
+    
+    .product-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .product-price {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #f97316;
+    }
+    
+    .product-location {
+      font-size: 0.7rem;
+      color: var(--tg-hint);
+      margin-top: 4px;
+    }
+    
+    .badge-sale {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #16a34a;
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 8px;
+    }
+    
+    .filter-fab {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: white;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--tg-hint);
+    }
+    
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(0,0,0,0.1);
+      border-top-color: #f97316;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (min-width: 600px) {
+      .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Asosiy App Container -->
+<div id="app">
+  
+  <!-- Bosh sahifa (Home) -->
+  <div id="homePage" class="main-content">
+    <div class="top-bar">
+      <span class="logo">🛍️ OLeX</span>
+      <div>
+        <button class="search-btn" id="openSearchBtn">🔍</button>
+        <button class="profile-btn" id="openProfileBtn">👤</button>
+      </div>
+    </div>
+    
+    <div id="searchBarContainer" class="search-bar" style="display: none;">
+      <input type="text" id="searchInput" placeholder="Mahsulot qidirish..." autocomplete="off">
+    </div>
+    
+    <div class="categories" id="categoriesContainer">
+      <button class="category-btn active" data-cat="all">🏠 Barchasi</button>
+      <button class="category-btn" data-cat="electronics">📱 Elektronika</button>
+      <button class="category-btn" data-cat="livestock">🐄 Chorvachilik</button>
+      <button class="category-btn" data-cat="clothes">👗 Kiyim</button>
+      <button class="category-btn" data-cat="home">🏠 Uy</button>
+      <button class="category-btn" data-cat="cars">🚗 Avto</button>
+      <button class="category-btn" data-cat="food_products">🍕 Taomlar</button>
+      <button class="category-btn" data-cat="shop_products">🏪 Do'kon</button>
+      <button class="category-btn" data-cat="other">📦 Boshqa</button>
+    </div>
+    
+    <div id="productsContainer" class="products-grid">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Iframe sahifalar -->
+  <iframe id="profileFrame" class="iframe-page hidden-page" src="prof.html"></iframe>
+  <iframe id="foodFrame" class="iframe-page hidden-page" src="osh.html"></iframe>
+  <iframe id="shopFrame" class="iframe-page hidden-page" src="duk.html"></iframe>
+  <iframe id="deliveryFrame" class="iframe-page hidden-page" src="das.html"></iframe>
+  
+  <!-- Pastki navigatsiya -->
+  <div class="nav-container">
+    <button class="nav-item active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Bosh sahifa</span>
+    </button>
+    <button class="nav-item" data-page="food">
+      <span class="nav-icon">🍕</span>
+      <span class="nav-label">Taomlar</span>
+    </button>
+    <button class="nav-item" data-page="shop">
+      <span class="nav-icon">🏪</span>
+      <span class="nav-label">Do'kon</span>
+    </button>
+    <button class="nav-item" data-page="delivery">
+      <span class="nav-icon">🚚</span>
+      <span class="nav-label">Dastafchi</span>
+    </button>
+    <button class="nav-item" data-page="profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
+    </button>
+  </div>
+  
+  <!-- Filtr FAB tugmasi -->
+  <button class="filter-fab" id="filterFab">🔍</button>
+  
+</div>
+
+<script>
+  // ==================== KONFIGURATSIYA ====================
+  const CFG = {
+    SHEETDB: 'https://sheetdb.io/api/v1/ismqzmra83a4l',
+    IMGBB_KEY: '786b6ed20a17f40a8a6d037aef43fdc7',
+    SHEET_PRODUCTS: 'Mahsulotlar',
+    SHEET_PROFILES: 'Profillar',
+    EXPIRE_DAYS: 7
+  };
+  
+  // ==================== GLOBAL HOLAT ====================
+  let currentUser = null;
+  let allProducts = [];
+  let filteredProducts = [];
+  let currentCategory = 'all';
+  let currentPage = 'home';
+  let searchQuery = '';
+  let filterState = {
+    minPrice: '',
+    maxPrice: '',
+    sortBy: 'default'
+  };
+  
+  // ==================== TELEGRAM THEME ====================
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.expand();
+    tg.ready();
+    applyTelegramTheme();
+    tg.onEvent('themeChanged', () => applyTelegramTheme());
+  }
+  
+  function applyTelegramTheme() {
+    if (!tg) return;
+    const tp = tg.themeParams || {};
+    document.documentElement.style.setProperty('--tg-theme-bg-color', tp.bg_color || '#f0f4f8');
+    document.documentElement.style.setProperty('--tg-theme-text-color', tp.text_color || '#1a1a2e');
+    document.documentElement.style.setProperty('--tg-theme-hint-color', tp.hint_color || '#7a8498');
+    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tp.secondary_bg_color || '#ffffff');
+    
+    if (tg.colorScheme === 'dark') {
+      document.body.classList.add('tg-dark');
+    } else {
+      document.body.classList.remove('tg-dark');
+    }
+  }
+  
+  // ==================== SAHIFA NAVIGATSIYASI ====================
+  function navigateTo(page) {
+    // Barcha sahifalarni yashirish
+    document.getElementById('homePage').style.display = 'none';
+    document.getElementById('profileFrame').classList.add('hidden-page');
+    document.getElementById('foodFrame').classList.add('hidden-page');
+    document.getElementById('shopFrame').classList.add('hidden-page');
+    document.getElementById('deliveryFrame').classList.add('hidden-page');
+    
+    // Asosiy contentni ko'rsatish/yaritish
+    if (page === 'home') {
+      document.getElementById('homePage').style.display = 'block';
+      document.getElementById('filterFab').style.display = 'flex';
+    } else {
+      document.getElementById('filterFab').style.display = 'none';
+      const frameId = page === 'profile' ? 'profileFrame' : 
+                      page === 'food' ? 'foodFrame' :
+                      page === 'shop' ? 'shopFrame' : 'deliveryFrame';
+      const frame = document.getElementById(frameId);
+      frame.classList.remove('hidden-page');
+      frame.style.display = 'block';
+      
+      // Iframe ni yangilash (refresh)
+      try {
+        frame.contentWindow.location.reload();
+      } catch(e) {}
+    }
+    
+    // Navigatsiya tugmalarini yangilash
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.page === page);
+    });
+    
+    currentPage = page;
+    
+    // Profil ochilganda foydalanuvchi ma'lumotlarini uzatish
+    if (page === 'profile' && currentUser) {
+      setTimeout(() => {
+        try {
+          const profileFrame = document.getElementById('profileFrame');
+          if (profileFrame.contentWindow) {
+            profileFrame.contentWindow.postMessage({
+              type: 'userData',
+              data: currentUser
+            }, '*');
+          }
+        } catch(e) {}
+      }, 500);
+    }
+  }
+  
+  // ==================== FOYDALANUVCHI MA'LUMOTLARI ====================
+  async function loadCurrentUser() {
+    if (tg?.initDataUnsafe?.user) {
+      const user = tg.initDataUnsafe.user;
+      currentUser = {
+        id: String(user.id),
+        username: user.username || null,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        ism: user.first_name || '',
+        familya: user.last_name || ''
+      };
+    } else {
+      // Demo rejim
+      currentUser = {
+        id: 'demo_' + Date.now(),
+        username: 'demo_user',
+        first_name: 'Demo',
+        last_name: 'Foydalanuvchi',
+        ism: 'Demo',
+        familya: 'Foydalanuvchi'
+      };
+    }
+    
+    // Profilni yuklash
+    await loadUserProfile();
+  }
+  
+  async function loadUserProfile() {
+    try {
+      const uid = currentUser.id;
+      const res = await fetch(`${CFG.SHEETDB}/search?user_id=${encodeURIComponent(uid)}&sheet=${CFG.SHEET_PROFILES}`);
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        currentUser = { ...currentUser, ...data[0] };
+      }
+    } catch(e) {
+      console.warn('Profil yuklanmadi:', e);
+    }
+    
+    // Profil ma'lumotlarini iframe'larga yuborish
+    broadcastUserData();
+  }
+  
+  function broadcastUserData() {
+    const frames = ['profileFrame', 'foodFrame', 'shopFrame', 'deliveryFrame'];
+    frames.forEach(frameId => {
+      try {
+        const frame = document.getElementById(frameId);
+        if (frame && frame.contentWindow) {
+          frame.contentWindow.postMessage({
+            type: 'userData',
+            data: currentUser
+          }, '*');
+        }
+      } catch(e) {}
+    });
+  }
+  
+  // ==================== MAHSULOTLAR ====================
+  async function loadProducts() {
+    const container = document.getElementById('productsContainer');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Yuklanmoqda...</p></div>';
+    
+    try {
+      let data = await fetch(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`).then(r => r.json());
+      if (!Array.isArray(data)) data = [];
+      
+      // Expired mahsulotlarni o'chirish
+      const now = Date.now();
+      const toDelete = data.filter(p => {
+        if (!p.created_at || p.id === 'INIT') return false;
+        const created = new Date(p.created_at).getTime();
+        return (now - created) > CFG.EXPIRE_DAYS * 24 * 60 * 60 * 1000;
+      });
+      
+      for (const p of toDelete) {
+        try {
+          await fetch(`${CFG.SHEETDB}/id/${p.id}?sheet=${CFG.SHEET_PRODUCTS}`, { method: 'DELETE' });
+        } catch(e) {}
+      }
+      
+      // Yangi ma'lumotlarni olish
+      const fresh = await fetch(`${CFG.SHEETDB}?sheet=${CFG.SHEET_PRODUCTS}`).then(r => r.json());
+      allProducts = (Array.isArray(fresh) ? fresh : []).filter(p => p.id && p.id !== 'INIT' && p.title !== 'INIT');
+      
+      applyFilters();
+    } catch(e) {
+      container.innerHTML = '<div class="loading"><span>⚠️</span><p>Yuklab bo\'lmadi. Qayta urining.</p></div>';
+    }
+  }
+  
+  function applyFilters() {
+    let filtered = [...allProducts];
+    
+    // Kategoriya filtri
+    if (currentCategory !== 'all') {
+      filtered = filtered.filter(p => p.category === currentCategory);
+    }
+    
+    // Qidiruv filtri
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.title?.toLowerCase().includes(q) || 
+        p.description?.toLowerCase().includes(q) ||
+        p.location?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Narx filtri
+    if (filterState.minPrice) {
+      filtered = filtered.filter(p => parseFloat(p.price || 0) >= parseFloat(filterState.minPrice));
+    }
+    if (filterState.maxPrice) {
+      filtered = filtered.filter(p => parseFloat(p.price || 0) <= parseFloat(filterState.maxPrice));
+    }
+    
+    // Saralash
+    if (filterState.sortBy === 'price_asc') {
+      filtered.sort((a, b) => parseFloat(a.price || 0) - parseFloat(b.price || 0));
+    } else if (filterState.sortBy === 'price_desc') {
+      filtered.sort((a, b) => parseFloat(b.price || 0) - parseFloat(a.price || 0));
+    } else if (filterState.sortBy === 'newest') {
+      filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+    
+    filteredProducts = filtered;
+    renderProducts();
+  }
+  
+  function renderProducts() {
+    const container = document.getElementById('productsContainer');
+    
+    if (filteredProducts.length === 0) {
+      container.innerHTML = '<div class="loading"><span>🛒</span><p>Mahsulotlar topilmadi</p></div>';
+      return;
+    }
+    
+    container.innerHTML = filteredProducts.map(p => `
+      <div class="product-card" onclick="openProductDetail('${p.id}')">
+        ${p.img_url ? 
+          `<img class="product-img" src="${escapeHtml(p.img_url)}" alt="${escapeHtml(p.title)}">` : 
+          `<div class="product-placeholder">${getCategoryEmoji(p.category)}</div>`
+        }
+        ${p.for_sale === 'true' ? '<div class="badge-sale">Sotuvda</div>' : ''}
+        <div class="product-info">
+          <div class="product-title">${escapeHtml(p.title)}</div>
+          <div class="product-price">${formatPrice(p.price)} so'm</div>
+          <div class="product-location">📍 ${escapeHtml(p.location || '')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  function getCategoryEmoji(cat) {
+    const map = {
+      electronics: '📱', livestock: '🐄', clothes: '👗', home: '🏠',
+      cars: '🚗', food_products: '🍕', shop_products: '🏪', other: '📦'
+    };
+    return map[cat] || '📦';
+  }
+  
+  function openProductDetail(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Telefon raqamni formatlash
+    const phone = product.phone || '';
+    const formattedPhone = phone.replace(/[\s\-]/g, '').startsWith('998') ? '+' + phone.replace(/[\s\-]/g, '') : phone;
+    
+    const message = `🛍️ Mahsulot: ${product.title}\n💰 Narxi: ${formatPrice(product.price)} so'm\n📍 Joylashuv: ${product.location || 'Ko\'rsatilmagan'}\n📝 Tavsif: ${product.description || ''}\n\n📞 Bog'lanish: ${phone}`;
+    
+    if (confirm(`${product.title}\nNarxi: ${formatPrice(product.price)} so'm\n\nSotuvchi bilan bog'lanmoqchimisiz?`)) {
+      window.location.href = `tel:${formattedPhone}`;
+      setTimeout(() => {
+        window.open(`https://t.me/${product.username || 'share'}?text=${encodeURIComponent(message)}`, '_blank');
+      }, 500);
+    }
+  }
+  
+  // ==================== KATEGORIYA ====================
+  function setCategory(category) {
+    currentCategory = category;
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cat === category);
+    });
+    applyFilters();
+  }
+  
+  // ==================== QIDIRUV ====================
+  function toggleSearch() {
+    const bar = document.getElementById('searchBarContainer');
+    bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
+    if (bar.style.display === 'block') {
+      document.getElementById('searchInput').focus();
+    }
+  }
+  
+  // ==================== FILTR ====================
+  function openFilterModal() {
+    const minPrice = prompt('Minimal narx (so\'m):', filterState.minPrice || '');
+    const maxPrice = prompt('Maksimal narx (so\'m):', filterState.maxPrice || '');
+    const sortBy = prompt('Saralash (default/price_asc/price_desc/newest):', filterState.sortBy);
+    
+    filterState.minPrice = minPrice || '';
+    filterState.maxPrice = maxPrice || '';
+    if (sortBy && ['default', 'price_asc', 'price_desc', 'newest'].includes(sortBy)) {
+      filterState.sortBy = sortBy;
+    }
+    
+    applyFilters();
+  }
+  
+  // ==================== YORDAMCHI FUNKSIYALAR ====================
+  function formatPrice(price) {
+    const n = parseFloat(price);
+    if (isNaN(n)) return price || '0';
+    return n.toLocaleString('uz-UZ');
+  }
+  
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, m => {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+  
+  // ==================== MESSAGE HANDLER (Iframe'dan kelgan xabarlar) ====================
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'userData') {
+      currentUser = { ...currentUser, ...event.data.data };
+    }
+    if (event.data?.type === 'navigate') {
+      navigateTo(event.data.page);
+    }
+    if (event.data?.type === 'refreshProducts') {
+      loadProducts();
+    }
+  });
+  
+  // ==================== INIT ====================
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Splash ekrani
+    await new Promise(r => setTimeout(r, 1500));
+    
+    await loadCurrentUser();
+    await loadProducts();
+    
+    // Event listenerlar
+    document.getElementById('openSearchBtn').addEventListener('click', toggleSearch);
+    document.getElementById('openProfileBtn').addEventListener('click', () => navigateTo('profile'));
+    document.getElementById('filterFab').addEventListener('click', openFilterModal);
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      applyFilters();
+    });
+    
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', () => setCategory(btn.dataset.cat));
+    });
+    
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+    });
+    
+    // Iframe'lar yuklangandan keyin ma'lumotlarni yuborish
+    setTimeout(() => broadcastUserData(), 1000);
+  });
+  
+  // Global funksiyalar (iframelardan chaqirish uchun)
+  window.navigateTo = navigateTo;
+  window.refreshProducts = loadProducts;
+  
+</script>
+
+</body>
+</html>
